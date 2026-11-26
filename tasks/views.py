@@ -47,15 +47,17 @@ def dashboard(request):
 
     status = request.GET.get('status')
     search_query = request.GET.get('search')
+    category = request.GET.get('category')
+
     tasks = Task.objects.filter(user=request.user)
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
     pending_tasks = tasks.filter(status=False).count()
     overdue_tasks = Task.objects.filter(
-    user=request.user,
-    status=False,
-    due_date__lt=timezone.now()
-)
+        user=request.user,
+        status=False,
+        due_date__lt=timezone.now()
+    )
     if search_query:
         tasks = tasks.filter(title__icontains=search_query)
     if status == 'pending':
@@ -63,6 +65,9 @@ def dashboard(request):
 
     elif status == 'completed':
         tasks = tasks.filter(status=True)
+
+    if category:
+        tasks = tasks.filter(category=category)
 
     sort_by = request.GET.get('sort', 'newest')
 
@@ -92,15 +97,16 @@ def dashboard(request):
 
     tasks = paginator.get_page(page_number)
     return render(request, 'tasks/dashboard.html', {
-    'tasks': tasks,
-    'selected_status': status,
-    'search_query': search_query,
-    'overdue_tasks': overdue_tasks,
-    'total_tasks': total_tasks,
-    'completed_tasks': completed_tasks,
-    'pending_tasks': pending_tasks,
-    'selected_sort': sort_by,
-})
+        'tasks': tasks,
+        'selected_status': status,
+        'search_query': search_query,
+        'overdue_tasks': overdue_tasks,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'pending_tasks': pending_tasks,
+        'selected_sort': sort_by,
+        'selected_category': category,
+    })
 def user_login(request):
 
     if request.method == 'POST':
@@ -144,7 +150,7 @@ def create_task(request):
         priority = request.POST.get('priority')
         due_date = request.POST.get('due_date')
         category = request.POST.get('category')
-        
+
         Task.objects.create(
             user=request.user,
             title=title,
@@ -155,7 +161,7 @@ def create_task(request):
         )
 
         return redirect('dashboard')
-    
+
 
 @login_required
 def edit_task(request, task_id):
@@ -178,6 +184,7 @@ def edit_task(request, task_id):
         'task': task
     })
 
+
 @login_required
 def delete_task(request, task_id):
 
@@ -188,6 +195,7 @@ def delete_task(request, task_id):
         task.delete()
 
     return redirect('dashboard')
+
 
 @login_required
 def toggle_task_status(request, task_id):
@@ -201,6 +209,7 @@ def toggle_task_status(request, task_id):
         task.save()
 
     return redirect('dashboard')
+
 
 @login_required
 def edit_profile(request):
@@ -222,6 +231,7 @@ def edit_profile(request):
         return redirect('dashboard')
 
     return render(request, 'tasks/edit_profile.html')
+
 
 @login_required
 def change_password(request):
