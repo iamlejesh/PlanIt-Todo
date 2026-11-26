@@ -99,6 +99,10 @@
             value="{{ search_query|default:'' }}"
         >
 
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+
+        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+
         <button type="submit">Search</button>
 
     </form>
@@ -107,11 +111,42 @@
 
     <p>Filter Tasks:</p>
 
-    <a href="{% url 'dashboard' %}">All</a> |
+    <a href="?search={{ search_query|default:'' }}&sort={{ selected_sort }}">All</a> |
 
-    <a href="{% url 'dashboard' %}?status=pending">Pending</a> |
+    <a href="?search={{ search_query|default:'' }}&status=pending&sort={{ selected_sort }}">Pending</a> |
 
-    <a href="{% url 'dashboard' %}?status=completed">Completed</a>
+    <a href="?search={{ search_query|default:'' }}&status=completed&sort={{ selected_sort }}">Completed</a>
+
+    <br><br>
+
+    <form method="GET" action="{% url 'dashboard' %}">
+
+        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+
+        <label>Sort Tasks:</label>
+
+        <select name="sort" onchange="this.form.submit()">
+
+            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>
+                Newest First
+            </option>
+
+            <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
+                Oldest First
+            </option>
+
+            <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
+                Priority: High to Low
+            </option>
+
+            <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
+                Due Date: Earliest First
+            </option>
+
+        </select>
+
+    </form>
 
     <hr>
 
@@ -178,8 +213,15 @@
         <div>
 
             {% if tasks.has_previous %}
-                <a href="?page=1">First</a>
-                <a href="?page={{ tasks.previous_page_number }}">Previous</a>
+
+                <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    First
+                </a>
+
+                <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    Previous
+                </a>
+
             {% endif %}
 
             <span>
@@ -187,8 +229,15 @@
             </span>
 
             {% if tasks.has_next %}
-                <a href="?page={{ tasks.next_page_number }}">Next</a>
-                <a href="?page={{ tasks.paginator.num_pages }}">Last</a>
+
+                <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    Next
+                </a>
+
+                <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    Last
+                </a>
+
             {% endif %}
 
         </div>

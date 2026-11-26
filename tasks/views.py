@@ -7,6 +7,7 @@ from .models import Task
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
+from django.db.models import Case, When, Value, IntegerField
 
 def register(request):
 
@@ -63,7 +64,28 @@ def dashboard(request):
     elif status == 'completed':
         tasks = tasks.filter(status=True)
 
-    tasks = tasks.order_by('-created_at')
+    sort_by = request.GET.get('sort', 'newest')
+
+    if sort_by == 'oldest':
+        tasks = tasks.order_by('created_at')
+
+    elif sort_by == 'priority':
+        tasks = tasks.order_by(
+            Case(
+                When(priority='High', then=Value(1)),
+                When(priority='Medium', then=Value(2)),
+                When(priority='Low', then=Value(3)),
+                default=Value(4),
+                output_field=IntegerField()
+            )
+        )
+
+    elif sort_by == 'due_date':
+        tasks = tasks.order_by('due_date')
+
+    else:
+        sort_by = 'newest'
+        tasks = tasks.order_by('-created_at')
     paginator = Paginator(tasks, 2)
 
     page_number = request.GET.get('page')
@@ -76,7 +98,8 @@ def dashboard(request):
     'overdue_tasks': overdue_tasks,
     'total_tasks': total_tasks,
     'completed_tasks': completed_tasks,
-    'pending_tasks': pending_tasks
+    'pending_tasks': pending_tasks,
+    'selected_sort': sort_by,
 })
 def user_login(request):
 
