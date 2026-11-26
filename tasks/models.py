@@ -16,6 +16,16 @@ class Task(models.Model):
     priority = models.CharField(max_length=10,default='Medium')
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField(blank=True, null=True)
-
+    category = models.CharField(
+    max_length=20,
+    choices=[
+        ('Work', 'Work'),
+        ('Personal', 'Personal'),
+        ('Study', 'Study'),
+        ('Shopping', 'Shopping'),
+        ('Other', 'Other'),
+    ],
+    default='Other'
+)
     def __str__(self):
         return self.title

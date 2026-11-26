@@ -143,13 +143,15 @@ def create_task(request):
         description = request.POST.get('description')
         priority = request.POST.get('priority')
         due_date = request.POST.get('due_date')
+        category = request.POST.get('category')
         
         Task.objects.create(
             user=request.user,
             title=title,
             description=description,
             priority=priority,
-            due_date=due_date if due_date else None
+            due_date=due_date if due_date else None,
+            category=category
         )
 
         return redirect('dashboard')
@@ -167,6 +169,7 @@ def edit_task(request, task_id):
         due_date = request.POST.get('due_date')
         task.due_date = due_date if due_date else None
         task.priority = request.POST.get('priority')
+        task.category = request.POST.get('category')
         task.save()
 
         return redirect('dashboard')

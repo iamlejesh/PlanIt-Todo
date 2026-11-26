@@ -45,9 +45,19 @@
             <option value="Medium" selected>Medium</option>
             <option value="High">High</option>
         </select>
-
         <br><br>
 
+        <label>Category:</label>
+
+        <select name="category">
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Study">Study</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other" selected>Other</option>
+        </select>
+        <br><br>
+        
         <label>Due Date:</label>
 
         <input type="datetime-local" name="due_date">
@@ -159,7 +169,7 @@
                 <h4>{{ task.title }}</h4>
 
                 <p>Priority: {{ task.priority }}</p>
-
+                <p>Category: {{ task.category }}</p>
                 <p>{{ task.description }}</p>
 
                 <p>
