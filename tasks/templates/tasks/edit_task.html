@@ -33,6 +33,17 @@
         </select>
         <br><br>
 
+        <label>Category:</label>
+
+        <select name="category">
+            <option value="Work" {% if task.category == 'Work' %}selected{% endif %}>Work</option>
+            <option value="Personal" {% if task.category == 'Personal' %}selected{% endif %}>Personal</option>
+            <option value="Study" {% if task.category == 'Study' %}selected{% endif %}>Study</option>
+            <option value="Shopping" {% if task.category == 'Shopping' %}selected{% endif %}>Shopping</option>
+            <option value="Other" {% if task.category == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+        <br><br>
+
         <label>Due Date:</label>
 
         <input

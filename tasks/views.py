@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
@@ -7,6 +8,9 @@ from .models import Task
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
+from django.db.models import Case, When, Value, IntegerField
+from datetime import timedelta
+
 
 def register(request):
 
@@ -41,43 +45,89 @@ def register(request):
 
     return render(request, 'tasks/register.html')
 
+
 @login_required
 def dashboard(request):
 
     status = request.GET.get('status')
     search_query = request.GET.get('search')
+    category = request.GET.get('category')
+    priority = request.GET.get('priority')
     tasks = Task.objects.filter(user=request.user)
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
     pending_tasks = tasks.filter(status=False).count()
+
     overdue_tasks = Task.objects.filter(
-    user=request.user,
-    status=False,
-    due_date__lt=timezone.now()
-)
+        user=request.user,
+        status=False,
+        due_date__lt=timezone.now()
+    )
+
+    upcoming_tasks = Task.objects.filter(
+        user=request.user,
+        status=False,
+        due_date__gte=timezone.now(),
+        due_date__lte=timezone.now() + timedelta(hours=24)
+    ).order_by('due_date')
+
     if search_query:
         tasks = tasks.filter(title__icontains=search_query)
+
     if status == 'pending':
         tasks = tasks.filter(status=False)
 
     elif status == 'completed':
         tasks = tasks.filter(status=True)
 
-    tasks = tasks.order_by('-created_at')
+    if category:
+        tasks = tasks.filter(category=category)
+    if priority:
+        tasks = tasks.filter(priority=priority)
+    sort_by = request.GET.get('sort', 'newest')
+
+    if sort_by == 'oldest':
+        tasks = tasks.order_by('created_at')
+
+    elif sort_by == 'priority':
+        tasks = tasks.order_by(
+            Case(
+                When(priority='High', then=Value(1)),
+                When(priority='Medium', then=Value(2)),
+                When(priority='Low', then=Value(3)),
+                default=Value(4),
+                output_field=IntegerField()
+            )
+        )
+
+    elif sort_by == 'due_date':
+        tasks = tasks.order_by('due_date')
+
+    else:
+        sort_by = 'newest'
+        tasks = tasks.order_by('-created_at')
+
     paginator = Paginator(tasks, 2)
 
     page_number = request.GET.get('page')
 
     tasks = paginator.get_page(page_number)
+
     return render(request, 'tasks/dashboard.html', {
-    'tasks': tasks,
-    'selected_status': status,
-    'search_query': search_query,
-    'overdue_tasks': overdue_tasks,
-    'total_tasks': total_tasks,
-    'completed_tasks': completed_tasks,
-    'pending_tasks': pending_tasks
-})
+        'tasks': tasks,
+        'selected_status': status,
+        'search_query': search_query,
+        'overdue_tasks': overdue_tasks,
+        'upcoming_tasks': upcoming_tasks,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'pending_tasks': pending_tasks,
+        'selected_sort': sort_by,
+        'selected_category': category,
+        'selected_priority': priority,
+    })
+
+
 def user_login(request):
 
     if request.method == 'POST':
@@ -120,17 +170,19 @@ def create_task(request):
         description = request.POST.get('description')
         priority = request.POST.get('priority')
         due_date = request.POST.get('due_date')
-        
+        category = request.POST.get('category')
+
         Task.objects.create(
             user=request.user,
             title=title,
             description=description,
             priority=priority,
-            due_date=due_date if due_date else None
+            due_date=due_date if due_date else None,
+            category=category
         )
 
         return redirect('dashboard')
-    
+
 
 @login_required
 def edit_task(request, task_id):
@@ -144,6 +196,7 @@ def edit_task(request, task_id):
         due_date = request.POST.get('due_date')
         task.due_date = due_date if due_date else None
         task.priority = request.POST.get('priority')
+        task.category = request.POST.get('category')
         task.save()
 
         return redirect('dashboard')
@@ -151,6 +204,7 @@ def edit_task(request, task_id):
     return render(request, 'tasks/edit_task.html', {
         'task': task
     })
+
 
 @login_required
 def delete_task(request, task_id):
@@ -162,6 +216,7 @@ def delete_task(request, task_id):
         task.delete()
 
     return redirect('dashboard')
+
 
 @login_required
 def toggle_task_status(request, task_id):
@@ -175,6 +230,7 @@ def toggle_task_status(request, task_id):
         task.save()
 
     return redirect('dashboard')
+
 
 @login_required
 def edit_profile(request):
@@ -196,6 +252,7 @@ def edit_profile(request):
         return redirect('dashboard')
 
     return render(request, 'tasks/edit_profile.html')
+
 
 @login_required
 def change_password(request):

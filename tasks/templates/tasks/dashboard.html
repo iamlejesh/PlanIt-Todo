@@ -45,7 +45,17 @@
             <option value="Medium" selected>Medium</option>
             <option value="High">High</option>
         </select>
+        <br><br>
 
+        <label>Category:</label>
+
+        <select name="category">
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Study">Study</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other" selected>Other</option>
+        </select>
         <br><br>
 
         <label>Due Date:</label>
@@ -57,37 +67,61 @@
     </form>
 
     <hr>
+
     <h3>Overdue Tasks</h3>
 
-        {% if overdue_tasks %}
+    {% if overdue_tasks %}
 
-            <p style="color: red;">
-                You have {{ overdue_tasks.count }} overdue task(s).
+        <p style="color: red;">
+            You have {{ overdue_tasks.count }} overdue task(s).
+        </p>
+
+        {% for task in overdue_tasks %}
+            <p>
+                {{ task.title }} -
+                Due: {{ task.due_date|date:"d-m-Y H:i" }}
+            </p>
+        {% endfor %}
+
+    {% else %}
+
+        <p>No overdue tasks.</p>
+
+    {% endif %}
+
+    <hr>
+
+    <h3>Upcoming Tasks (Next 24 Hours)</h3>
+
+    {% if upcoming_tasks %}
+
+        {% for task in upcoming_tasks %}
+
+            <p>
+                {{ task.title }} -
+                Due: {{ task.due_date|date:"d-m-Y H:i" }}
             </p>
 
-            {% for task in overdue_tasks %}
-                <p>
-                    {{ task.title }} -
-                    Due: {{ task.due_date|date:"d-m-Y H:i" }}
-                </p>
-            {% endfor %}
+        {% endfor %}
 
-        {% else %}
+    {% else %}
 
-            <p>No overdue tasks.</p>
+        <p>No upcoming tasks in the next 24 hours.</p>
 
-        {% endif %}
+    {% endif %}
 
-        <hr>
-        <h3>Task Statistics</h3>
+    <hr>
 
-        <p>Total Tasks: {{ total_tasks }}</p>
+    <h3>Task Statistics</h3>
 
-        <p>Completed Tasks: {{ completed_tasks }}</p>
+    <p>Total Tasks: {{ total_tasks }}</p>
 
-        <p>Pending Tasks: {{ pending_tasks }}</p>
+    <p>Completed Tasks: {{ completed_tasks }}</p>
 
-        <hr>
+    <p>Pending Tasks: {{ pending_tasks }}</p>
+
+    <hr>
+
     <h3>My Tasks</h3>
 
     <form method="GET" action="{% url 'dashboard' %}">
@@ -99,6 +133,10 @@
             value="{{ search_query|default:'' }}"
         >
 
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+
+        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+
         <button type="submit">Search</button>
 
     </form>
@@ -107,11 +145,119 @@
 
     <p>Filter Tasks:</p>
 
-    <a href="{% url 'dashboard' %}">All</a> |
+    <a href="?search={{ search_query|default:'' }}&sort={{ selected_sort }}">All</a> |
 
-    <a href="{% url 'dashboard' %}?status=pending">Pending</a> |
+    <a href="?search={{ search_query|default:'' }}&status=pending&sort={{ selected_sort }}">Pending</a> |
 
-    <a href="{% url 'dashboard' %}?status=completed">Completed</a>
+    <a href="?search={{ search_query|default:'' }}&status=completed&sort={{ selected_sort }}">Completed</a>
+
+    <br><br>
+
+    <form method="GET" action="{% url 'dashboard' %}">
+
+        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+
+        <label>Sort Tasks:</label>
+
+        <select name="sort" onchange="this.form.submit()">
+
+            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>
+                Newest First
+            </option>
+
+            <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
+                Oldest First
+            </option>
+
+            <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
+                Priority: High to Low
+            </option>
+
+            <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
+                Due Date: Earliest First
+            </option>
+
+        </select>
+
+    </form>
+
+    <br>
+
+    <!-- Category Filter -->
+
+    <form method="GET" action="{% url 'dashboard' %}">
+
+        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+
+        <label>Filter by Category:</label>
+
+        <select name="category" onchange="this.form.submit()">
+
+            <option value="" {% if not selected_category %}selected{% endif %}>
+                All Categories
+            </option>
+
+            <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>
+                Work
+            </option>
+
+            <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>
+                Personal
+            </option>
+
+            <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>
+                Study
+            </option>
+
+            <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>
+                Shopping
+            </option>
+
+            <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>
+                Other
+            </option>
+
+        </select>
+
+    </form>
+
+    <br>
+
+    <!-- Priority Filter -->
+
+    <form method="GET" action="{% url 'dashboard' %}">
+
+        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+        <input type="hidden" name="category" value="{{ selected_category|default:'' }}">
+
+        <label>Filter by Priority:</label>
+
+        <select name="priority" onchange="this.form.submit()">
+
+            <option value="" {% if not selected_priority %}selected{% endif %}>
+                All Priorities
+            </option>
+
+            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
+                High
+            </option>
+
+            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
+                Medium
+            </option>
+
+            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
+                Low
+            </option>
+
+        </select>
+
+    </form>
 
     <hr>
 
@@ -124,7 +270,7 @@
                 <h4>{{ task.title }}</h4>
 
                 <p>Priority: {{ task.priority }}</p>
-
+                <p>Category: {{ task.category }}</p>
                 <p>{{ task.description }}</p>
 
                 <p>
@@ -178,8 +324,15 @@
         <div>
 
             {% if tasks.has_previous %}
-                <a href="?page=1">First</a>
-                <a href="?page={{ tasks.previous_page_number }}">Previous</a>
+
+                <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    First
+                </a>
+
+                <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    Previous
+                </a>
+
             {% endif %}
 
             <span>
@@ -187,8 +340,15 @@
             </span>
 
             {% if tasks.has_next %}
-                <a href="?page={{ tasks.next_page_number }}">Next</a>
-                <a href="?page={{ tasks.paginator.num_pages }}">Last</a>
+
+                <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    Next
+                </a>
+
+                <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                    Last
+                </a>
+
             {% endif %}
 
         </div>
