@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Profile</title>
+</head>
+<body>
+
+    <h2>Edit Profile</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>First Name:</label>
+        <input type="text" name="first_name"
+               value="{{ request.user.first_name }}">
+        <br><br>
+
+        <label>Last Name:</label>
+        <input type="text" name="last_name"
+               value="{{ request.user.last_name }}">
+        <br><br>
+
+        <label>Email:</label>
+        <input type="email" name="email"
+               value="{{ request.user.email }}">
+        <br><br>
+
+        <button type="submit">Save Changes</button>
+
+    </form>
+
+    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+
+</body>
+</html>

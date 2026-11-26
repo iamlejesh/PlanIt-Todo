@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Todo Dashboard</title>
+</head>
+
+<body>
+
+    <h2>User Profile</h2>
+
+    <p>Username: {{ request.user.username }}</p>
+    <p>Email: {{ request.user.email }}</p>
+
+    <a href="{% url 'edit_profile' %}">Edit Profile</a>
+    <br>
+    <a href="{% url 'change_password' %}">Change Password</a>
+
+    <hr>
+
+    <h1>Todo Dashboard</h1>
+
+    <h2>Welcome {{ request.user.username }}!</h2>
+
+    <p>You have successfully logged in.</p>
+
+    <hr>
+
+    <h3>Create New Task</h3>
+
+    <form method="POST" action="{% url 'create_task' %}">
+        {% csrf_token %}
+
+        <input type="text" name="title" placeholder="Enter task title" required>
+        <br><br>
+
+        <textarea name="description" placeholder="Enter task description"></textarea>
+        <br><br>
+
+        <label>Priority:</label>
+
+        <select name="priority">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+        </select>
+
+        <br><br>
+
+        <label>Due Date:</label>
+
+        <input type="datetime-local" name="due_date">
+        <br><br>
+
+        <button type="submit">Add Task</button>
+    </form>
+
+    <hr>
+    <h3>Overdue Tasks</h3>
+
+        {% if overdue_tasks %}
+
+            <p style="color: red;">
+                You have {{ overdue_tasks.count }} overdue task(s).
+            </p>
+
+            {% for task in overdue_tasks %}
+                <p>
+                    {{ task.title }} -
+                    Due: {{ task.due_date|date:"d-m-Y H:i" }}
+                </p>
+            {% endfor %}
+
+        {% else %}
+
+            <p>No overdue tasks.</p>
+
+        {% endif %}
+
+        <hr>
+        <h3>Task Statistics</h3>
+
+        <p>Total Tasks: {{ total_tasks }}</p>
+
+        <p>Completed Tasks: {{ completed_tasks }}</p>
+
+        <p>Pending Tasks: {{ pending_tasks }}</p>
+
+        <hr>
+    <h3>My Tasks</h3>
+
+    <form method="GET" action="{% url 'dashboard' %}">
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search tasks..."
+            value="{{ search_query|default:'' }}"
+        >
+
+        <button type="submit">Search</button>
+
+    </form>
+
+    <br>
+
+    <p>Filter Tasks:</p>
+
+    <a href="{% url 'dashboard' %}">All</a> |
+
+    <a href="{% url 'dashboard' %}?status=pending">Pending</a> |
+
+    <a href="{% url 'dashboard' %}?status=completed">Completed</a>
+
+    <hr>
+
+    {% if tasks %}
+
+        {% for task in tasks %}
+
+            <div>
+
+                <h4>{{ task.title }}</h4>
+
+                <p>Priority: {{ task.priority }}</p>
+
+                <p>{{ task.description }}</p>
+
+                <p>
+                    Due Date:
+
+                    {% if task.due_date %}
+                        {{ task.due_date|date:"d-m-Y H:i" }}
+                    {% else %}
+                        Not set
+                    {% endif %}
+                </p>
+
+                <p>
+                    Status:
+
+                    {% if task.status %}
+                        Completed
+                    {% else %}
+                        Pending
+                    {% endif %}
+                </p>
+
+                <p>Created: {{ task.created_at }}</p>
+
+                <a href="{% url 'edit_task' task.id %}">Edit</a>
+
+                <form method="POST" action="{% url 'delete_task' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Delete</button>
+                </form>
+
+                <form method="POST" action="{% url 'toggle_task_status' task.id %}">
+                    {% csrf_token %}
+
+                    {% if task.status %}
+                        <button type="submit">Mark as Pending</button>
+                    {% else %}
+                        <button type="submit">Mark as Completed</button>
+                    {% endif %}
+
+                </form>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+        <!-- Pagination -->
+
+        <div>
+
+            {% if tasks.has_previous %}
+                <a href="?page=1">First</a>
+                <a href="?page={{ tasks.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            <span>
+                Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
+            </span>
+
+            {% if tasks.has_next %}
+                <a href="?page={{ tasks.next_page_number }}">Next</a>
+                <a href="?page={{ tasks.paginator.num_pages }}">Last</a>
+            {% endif %}
+
+        </div>
+
+    {% else %}
+
+        <p>No tasks available yet.</p>
+
+    {% endif %}
+
+    <hr>
+
+    <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+
+</body>
+
+</html>
