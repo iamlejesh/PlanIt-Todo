@@ -224,6 +224,41 @@
 
     </form>
 
+    <br>
+
+    <!-- Priority Filter -->
+
+    <form method="GET" action="{% url 'dashboard' %}">
+
+        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+        <input type="hidden" name="category" value="{{ selected_category|default:'' }}">
+
+        <label>Filter by Priority:</label>
+
+        <select name="priority" onchange="this.form.submit()">
+
+            <option value="" {% if not selected_priority %}selected{% endif %}>
+                All Priorities
+            </option>
+
+            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
+                High
+            </option>
+
+            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
+                Medium
+            </option>
+
+            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
+                Low
+            </option>
+
+        </select>
+
+    </form>
+
     <hr>
 
     {% if tasks %}

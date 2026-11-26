@@ -52,7 +52,7 @@ def dashboard(request):
     status = request.GET.get('status')
     search_query = request.GET.get('search')
     category = request.GET.get('category')
-
+    priority = request.GET.get('priority')
     tasks = Task.objects.filter(user=request.user)
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
@@ -82,7 +82,8 @@ def dashboard(request):
 
     if category:
         tasks = tasks.filter(category=category)
-
+    if priority:
+        tasks = tasks.filter(priority=priority)
     sort_by = request.GET.get('sort', 'newest')
 
     if sort_by == 'oldest':
@@ -123,6 +124,7 @@ def dashboard(request):
         'pending_tasks': pending_tasks,
         'selected_sort': sort_by,
         'selected_category': category,
+        'selected_priority': priority,
     })
 
 
