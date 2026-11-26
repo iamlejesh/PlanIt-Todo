@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
@@ -8,6 +9,8 @@ from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
+from datetime import timedelta
+
 
 def register(request):
 
@@ -42,6 +45,7 @@ def register(request):
 
     return render(request, 'tasks/register.html')
 
+
 @login_required
 def dashboard(request):
 
@@ -53,13 +57,23 @@ def dashboard(request):
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
     pending_tasks = tasks.filter(status=False).count()
+
     overdue_tasks = Task.objects.filter(
         user=request.user,
         status=False,
         due_date__lt=timezone.now()
     )
+
+    upcoming_tasks = Task.objects.filter(
+        user=request.user,
+        status=False,
+        due_date__gte=timezone.now(),
+        due_date__lte=timezone.now() + timedelta(hours=24)
+    ).order_by('due_date')
+
     if search_query:
         tasks = tasks.filter(title__icontains=search_query)
+
     if status == 'pending':
         tasks = tasks.filter(status=False)
 
@@ -91,22 +105,27 @@ def dashboard(request):
     else:
         sort_by = 'newest'
         tasks = tasks.order_by('-created_at')
+
     paginator = Paginator(tasks, 2)
 
     page_number = request.GET.get('page')
 
     tasks = paginator.get_page(page_number)
+
     return render(request, 'tasks/dashboard.html', {
         'tasks': tasks,
         'selected_status': status,
         'search_query': search_query,
         'overdue_tasks': overdue_tasks,
+        'upcoming_tasks': upcoming_tasks,
         'total_tasks': total_tasks,
         'completed_tasks': completed_tasks,
         'pending_tasks': pending_tasks,
         'selected_sort': sort_by,
         'selected_category': category,
     })
+
+
 def user_login(request):
 
     if request.method == 'POST':
