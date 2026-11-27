@@ -20,8 +20,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Main Layout */
-
         .app-layout {
             display: flex;
             min-height: 100vh;
@@ -207,11 +205,100 @@
             border-radius: 8px;
             padding: 18px;
             margin-bottom: 15px;
+            transition: background-color 0.2s, border-color 0.2s,
+                opacity 0.2s, transform 0.2s;
         }
 
         .task-card h4 {
             font-size: 18px;
             margin-bottom: 12px;
+        }
+
+        /* Drag and Drop */
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-card.dragging {
+            opacity: 0.4;
+            border: 2px dashed #2563eb;
+            transform: scale(0.99);
+        }
+
+        .task-card.drag-over {
+            border: 2px solid #2563eb;
+            background-color: #eff6ff;
+        }
+
+        .task-card.drag-disabled {
+            cursor: default;
+        }
+
+        .task-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-card-header h4 {
+            flex: 1;
+            margin-bottom: 12px;
+        }
+
+        .drag-handle {
+            background-color: #e2e8f0;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 7px 10px;
+            margin: 0 0 10px;
+            cursor: grab;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .drag-handle:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .drag-instructions {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .drag-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .drag-actions button {
+            margin-top: 0;
+        }
+
+        .reset-order-button {
+            background-color: #64748b;
+        }
+
+        .reset-order-button:hover {
+            background-color: #475569;
+        }
+
+        .drag-status {
+            font-size: 13px;
+            color: #15803d;
+            margin: 8px 0;
         }
 
         .statistics {
@@ -311,7 +398,7 @@
             margin-bottom: 5px;
         }
 
-        /* Real-time Notification Popup */
+        /* Notification Popup */
 
         .notification-popup {
             position: fixed;
@@ -364,6 +451,11 @@
             background-color: #334155;
             border-color: #475569;
             color: #e2e8f0;
+        }
+
+        body.dark-theme .task-card.drag-over {
+            background-color: #1e3a5f;
+            border-color: #60a5fa;
         }
 
         body.dark-theme .stat-card {
@@ -424,7 +516,21 @@
             background-color: #334155;
         }
 
-        /* Mobile Responsive Sidebar */
+        body.dark-theme .drag-handle {
+            background-color: #475569;
+            color: #e2e8f0;
+            border-color: #64748b;
+        }
+
+        body.dark-theme .drag-instructions {
+            color: #cbd5e1;
+        }
+
+        body.dark-theme .drag-status {
+            color: #86efac;
+        }
+
+        /* Responsive Layout */
 
         @media (max-width: 768px) {
 
@@ -481,7 +587,7 @@
 
     <div class="app-layout">
 
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
 
         <aside class="sidebar" id="sidebar">
 
@@ -539,7 +645,7 @@
 
         </aside>
 
-        <!-- Main Dashboard Content -->
+        <!-- Main Dashboard -->
 
         <main class="main-content">
 
@@ -727,7 +833,7 @@
 
                     <h3>My Tasks</h3>
 
-                    <!-- Advanced Search Interface -->
+                    <!-- Advanced Search -->
 
                     <div class="advanced-search">
 
@@ -740,8 +846,6 @@
                         <form method="GET" action="{% url 'dashboard' %}">
 
                             <div class="search-grid">
-
-                                <!-- Search Text -->
 
                                 <div class="search-field">
 
@@ -758,8 +862,6 @@
                                     >
 
                                 </div>
-
-                                <!-- Status Filter -->
 
                                 <div class="search-field">
 
@@ -784,8 +886,6 @@
                                     </select>
 
                                 </div>
-
-                                <!-- Category Filter -->
 
                                 <div class="search-field">
 
@@ -823,8 +923,6 @@
 
                                 </div>
 
-                                <!-- Priority Filter -->
-
                                 <div class="search-field">
 
                                     <label for="priority-filter">
@@ -852,8 +950,6 @@
                                     </select>
 
                                 </div>
-
-                                <!-- Sorting -->
 
                                 <div class="search-field">
 
@@ -883,8 +979,6 @@
 
                                 </div>
 
-                                <!-- Start Date -->
-
                                 <div class="search-field">
 
                                     <label for="start_date">
@@ -899,8 +993,6 @@
                                     >
 
                                 </div>
-
-                                <!-- End Date -->
 
                                 <div class="search-field">
 
@@ -918,8 +1010,6 @@
                                 </div>
 
                             </div>
-
-                            <!-- Search Actions -->
 
                             <div class="search-actions">
 
@@ -942,63 +1032,113 @@
 
                     <hr>
 
+                    <!-- Drag and Drop Controls -->
+
+                    <div class="drag-actions">
+
+                        <div>
+                            <strong>Arrange Your Tasks</strong>
+
+                            <p class="drag-instructions">
+                                Drag the handle on a task card to change its position.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="reset-order-button"
+                            id="reset-task-order"
+                        >
+                            Reset Order
+                        </button>
+
+                    </div>
+
+                    <p
+                        id="drag-status"
+                        class="drag-status"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
+
                     <!-- Task List -->
 
                     {% if tasks %}
 
-                        {% for task in tasks %}
+                        <div class="task-list" id="task-list">
 
-                            <div class="task-card">
+                            {% for task in tasks %}
 
-                                <h4>{{ task.title }}</h4>
+                                <div
+                                    class="task-card"
+                                    draggable="true"
+                                    data-task-id="{{ task.id }}"
+                                >
 
-                                <p>Priority: {{ task.priority }}</p>
-                                <p>Category: {{ task.category }}</p>
-                                <p>{{ task.description }}</p>
+                                    <div class="task-card-header">
 
-                                <p>
-                                    Due Date:
+                                        <button
+                                            type="button"
+                                            class="drag-handle"
+                                            aria-label="Drag to reorder {{ task.title }}"
+                                            title="Drag to reorder"
+                                        >
+                                            &#8942;&#8942;
+                                        </button>
 
-                                    {% if task.due_date %}
-                                        {{ task.due_date|date:"d-m-Y H:i" }}
-                                    {% else %}
-                                        Not set
-                                    {% endif %}
-                                </p>
+                                        <h4>{{ task.title }}</h4>
 
-                                <p>
-                                    Status:
+                                    </div>
 
-                                    {% if task.status %}
-                                        Completed
-                                    {% else %}
-                                        Pending
-                                    {% endif %}
-                                </p>
+                                    <p>Priority: {{ task.priority }}</p>
+                                    <p>Category: {{ task.category }}</p>
+                                    <p>{{ task.description }}</p>
 
-                                <p>Created: {{ task.created_at }}</p>
+                                    <p>
+                                        Due Date:
 
-                                <a href="{% url 'edit_task' task.id %}">Edit</a>
+                                        {% if task.due_date %}
+                                            {{ task.due_date|date:"d-m-Y H:i" }}
+                                        {% else %}
+                                            Not set
+                                        {% endif %}
+                                    </p>
 
-                                <form method="POST" action="{% url 'delete_task' task.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit">Delete</button>
-                                </form>
+                                    <p>
+                                        Status:
 
-                                <form method="POST" action="{% url 'toggle_task_status' task.id %}">
-                                    {% csrf_token %}
+                                        {% if task.status %}
+                                            Completed
+                                        {% else %}
+                                            Pending
+                                        {% endif %}
+                                    </p>
 
-                                    {% if task.status %}
-                                        <button type="submit">Mark as Pending</button>
-                                    {% else %}
-                                        <button type="submit">Mark as Completed</button>
-                                    {% endif %}
+                                    <p>Created: {{ task.created_at }}</p>
 
-                                </form>
+                                    <a href="{% url 'edit_task' task.id %}">Edit</a>
 
-                            </div>
+                                    <form method="POST" action="{% url 'delete_task' task.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit">Delete</button>
+                                    </form>
 
-                        {% endfor %}
+                                    <form method="POST" action="{% url 'toggle_task_status' task.id %}">
+                                        {% csrf_token %}
+
+                                        {% if task.status %}
+                                            <button type="submit">Mark as Pending</button>
+                                        {% else %}
+                                            <button type="submit">Mark as Completed</button>
+                                        {% endif %}
+
+                                    </form>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
 
                         <!-- Pagination -->
 
@@ -1048,7 +1188,7 @@
 
     </div>
 
-    <!-- Real-time Notification Popup -->
+    <!-- Notification Popup -->
 
     <div id="notification-popup" class="notification-popup" role="status" aria-live="polite">
         <h4>New Notification</h4>
@@ -1100,6 +1240,238 @@
             mobileMenuButton.setAttribute('aria-expanded', isOpen);
 
         });
+
+        // Drag and Drop Task Reordering
+
+        const taskList = document.getElementById('task-list');
+        const resetTaskOrderButton = document.getElementById('reset-task-order');
+        const dragStatus = document.getElementById('drag-status');
+
+        const taskOrderStorageKey = 'planit-task-order-{{ request.user.id }}';
+
+        let draggedTask = null;
+
+        function getTaskCards() {
+            return Array.from(
+                taskList.querySelectorAll('.task-card')
+            );
+        }
+
+        function getSavedTaskOrder() {
+
+            try {
+                const savedOrder = localStorage.getItem(taskOrderStorageKey);
+
+                return savedOrder ? JSON.parse(savedOrder) : [];
+
+            } catch (error) {
+
+                console.error('Unable to read saved task order:', error);
+
+                return [];
+
+            }
+
+        }
+
+        function saveTaskOrder() {
+
+            const currentOrder = getTaskCards().map(card => {
+                return card.dataset.taskId;
+            });
+
+            const savedOrder = getSavedTaskOrder();
+
+            // Keep task IDs from other pages and filtered results.
+
+            const combinedOrder = [
+                ...currentOrder,
+                ...savedOrder.filter(id => !currentOrder.includes(id))
+            ];
+
+            try {
+
+                localStorage.setItem(
+                    taskOrderStorageKey,
+                    JSON.stringify(combinedOrder)
+                );
+
+                dragStatus.textContent = 'Task order saved in this browser.';
+
+            } catch (error) {
+
+                console.error('Unable to save task order:', error);
+
+                dragStatus.textContent = 'Unable to save task order.';
+
+            }
+
+        }
+
+        function restoreTaskOrder() {
+
+            if (!taskList) {
+                return;
+            }
+
+            const savedOrder = getSavedTaskOrder();
+
+            if (savedOrder.length === 0) {
+                return;
+            }
+
+            const cards = getTaskCards();
+
+            const orderMap = new Map(
+                savedOrder.map((id, index) => [id, index])
+            );
+
+            cards.sort((a, b) => {
+
+                const positionA = orderMap.has(a.dataset.taskId)
+                    ? orderMap.get(a.dataset.taskId)
+                    : Number.MAX_SAFE_INTEGER;
+
+                const positionB = orderMap.has(b.dataset.taskId)
+                    ? orderMap.get(b.dataset.taskId)
+                    : Number.MAX_SAFE_INTEGER;
+
+                return positionA - positionB;
+
+            });
+
+            cards.forEach(card => {
+                taskList.appendChild(card);
+            });
+
+        }
+
+        if (taskList) {
+
+            restoreTaskOrder();
+
+            getTaskCards().forEach(card => {
+
+                const dragHandle = card.querySelector('.drag-handle');
+
+                // Start dragging only when using the drag handle.
+
+                card.addEventListener('dragstart', function (event) {
+
+                    if (!card.dataset.dragAllowed) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    draggedTask = card;
+
+                    card.classList.add('dragging');
+
+                    event.dataTransfer.effectAllowed = 'move';
+
+                    event.dataTransfer.setData(
+                        'text/plain',
+                        card.dataset.taskId
+                    );
+
+                });
+
+                card.addEventListener('dragend', function () {
+
+                    card.classList.remove('dragging');
+
+                    getTaskCards().forEach(item => {
+                        item.classList.remove('drag-over');
+                        delete item.dataset.dragAllowed;
+                    });
+
+                    draggedTask = null;
+
+                });
+
+                card.addEventListener('dragover', function (event) {
+
+                    if (!draggedTask || draggedTask === card) {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    event.dataTransfer.dropEffect = 'move';
+
+                    card.classList.add('drag-over');
+
+                });
+
+                card.addEventListener('dragleave', function () {
+                    card.classList.remove('drag-over');
+                });
+
+                card.addEventListener('drop', function (event) {
+
+                    event.preventDefault();
+
+                    card.classList.remove('drag-over');
+
+                    if (!draggedTask || draggedTask === card) {
+                        return;
+                    }
+
+                    const rect = card.getBoundingClientRect();
+
+                    const dropAfter =
+                        event.clientY > rect.top + rect.height / 2;
+
+                    if (dropAfter) {
+
+                        card.after(draggedTask);
+
+                    } else {
+
+                        card.before(draggedTask);
+
+                    }
+
+                    saveTaskOrder();
+
+                });
+
+                // Enable dragging only after the handle is used.
+
+                dragHandle.addEventListener('mousedown', function () {
+                    card.dataset.dragAllowed = 'true';
+                });
+
+                dragHandle.addEventListener('touchstart', function () {
+                    dragStatus.textContent =
+                        'Use drag and drop with a mouse on this device.';
+                });
+
+                dragHandle.addEventListener('click', function () {
+                    dragStatus.textContent =
+                        'Hold the drag handle and move the task to reorder it.';
+                });
+
+            });
+
+            // Reset saved order.
+
+            resetTaskOrderButton.addEventListener('click', function () {
+
+                localStorage.removeItem(taskOrderStorageKey);
+
+                dragStatus.textContent =
+                    'Custom task order cleared. Reloading the original order...';
+
+                window.location.reload();
+
+            });
+
+        } else {
+
+            resetTaskOrderButton.style.display = 'none';
+
+        }
 
         // Real-time notifications
 
