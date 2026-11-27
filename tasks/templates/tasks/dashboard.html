@@ -233,15 +233,6 @@
             margin-bottom: 5px;
         }
 
-        .filter-links {
-            margin: 15px 0;
-        }
-
-        .filter-links a {
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-
         .danger {
             color: #dc2626;
         }
@@ -253,6 +244,71 @@
             flex-wrap: wrap;
             gap: 12px;
             margin-top: 20px;
+        }
+
+        /* Advanced Search */
+
+        .advanced-search {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-field label {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .search-field input,
+        .search-field select {
+            width: 100%;
+            max-width: none;
+            margin-top: 4px;
+        }
+
+        .search-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .search-actions button {
+            margin-top: 0;
+        }
+
+        .clear-filters {
+            display: inline-block;
+            padding: 10px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #2563eb;
+            text-decoration: none;
+            margin-right: 0;
+        }
+
+        .clear-filters:hover {
+            background-color: #eff6ff;
+            text-decoration: none;
+        }
+
+        .filter-heading {
+            margin-bottom: 5px;
         }
 
         /* Real-time Notification Popup */
@@ -331,6 +387,11 @@
             color: #cbd5e1;
         }
 
+        body.dark-theme .advanced-search {
+            background-color: #0f172a;
+            border-color: #475569;
+        }
+
         body.dark-theme .notification-popup {
             background-color: #1e293b;
             color: #e2e8f0;
@@ -352,6 +413,15 @@
 
         body.dark-theme .theme-toggle:hover {
             background-color: #475569;
+        }
+
+        body.dark-theme .clear-filters {
+            border-color: #475569;
+            color: #93c5fd;
+        }
+
+        body.dark-theme .clear-filters:hover {
+            background-color: #334155;
         }
 
         /* Mobile Responsive Sidebar */
@@ -383,6 +453,10 @@
             .statistics {
                 grid-template-columns: 1fr;
             }
+
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 600px) {
@@ -394,6 +468,10 @@
 
             .header {
                 padding: 18px;
+            }
+
+            .advanced-search {
+                padding: 14px;
             }
         }
     </style>
@@ -649,185 +727,218 @@
 
                     <h3>My Tasks</h3>
 
-                    <!-- Search -->
+                    <!-- Advanced Search Interface -->
 
-                    <form method="GET" action="{% url 'dashboard' %}">
+                    <div class="advanced-search">
 
-                        <input
-                            type="text"
-                            name="search"
-                            placeholder="Search tasks..."
-                            value="{{ search_query|default:'' }}"
-                        >
+                        <h3 class="filter-heading">Advanced Search</h3>
 
-                        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-                        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+                        <p>
+                            Search and combine multiple filters to find your tasks.
+                        </p>
 
-                        <button type="submit">Search</button>
+                        <form method="GET" action="{% url 'dashboard' %}">
 
-                    </form>
+                            <div class="search-grid">
 
-                    <br>
+                                <!-- Search Text -->
 
-                    <!-- Status Filter -->
+                                <div class="search-field">
 
-                    <p>Filter Tasks:</p>
+                                    <label for="task-search">
+                                        Search Tasks
+                                    </label>
 
-                    <div class="filter-links">
+                                    <input
+                                        type="text"
+                                        id="task-search"
+                                        name="search"
+                                        placeholder="Search by title or description..."
+                                        value="{{ search_query|default:'' }}"
+                                    >
 
-                        <a href="?search={{ search_query|default:'' }}&sort={{ selected_sort }}">All</a> |
+                                </div>
 
-                        <a href="?search={{ search_query|default:'' }}&status=pending&sort={{ selected_sort }}">Pending</a> |
+                                <!-- Status Filter -->
 
-                        <a href="?search={{ search_query|default:'' }}&status=completed&sort={{ selected_sort }}">Completed</a>
+                                <div class="search-field">
+
+                                    <label for="status-filter">
+                                        Task Status
+                                    </label>
+
+                                    <select id="status-filter" name="status">
+
+                                        <option value="" {% if not selected_status %}selected{% endif %}>
+                                            All Tasks
+                                        </option>
+
+                                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>
+                                            Pending
+                                        </option>
+
+                                        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>
+                                            Completed
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Category Filter -->
+
+                                <div class="search-field">
+
+                                    <label for="category-filter">
+                                        Category
+                                    </label>
+
+                                    <select id="category-filter" name="category">
+
+                                        <option value="" {% if not selected_category %}selected{% endif %}>
+                                            All Categories
+                                        </option>
+
+                                        <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>
+                                            Work
+                                        </option>
+
+                                        <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>
+                                            Personal
+                                        </option>
+
+                                        <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>
+                                            Study
+                                        </option>
+
+                                        <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>
+                                            Shopping
+                                        </option>
+
+                                        <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>
+                                            Other
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Priority Filter -->
+
+                                <div class="search-field">
+
+                                    <label for="priority-filter">
+                                        Priority
+                                    </label>
+
+                                    <select id="priority-filter" name="priority">
+
+                                        <option value="" {% if not selected_priority %}selected{% endif %}>
+                                            All Priorities
+                                        </option>
+
+                                        <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
+                                            High
+                                        </option>
+
+                                        <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
+                                            Medium
+                                        </option>
+
+                                        <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
+                                            Low
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Sorting -->
+
+                                <div class="search-field">
+
+                                    <label for="sort-filter">
+                                        Sort Tasks
+                                    </label>
+
+                                    <select id="sort-filter" name="sort">
+
+                                        <option value="newest" {% if selected_sort == 'newest' or not selected_sort %}selected{% endif %}>
+                                            Newest First
+                                        </option>
+
+                                        <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
+                                            Oldest First
+                                        </option>
+
+                                        <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
+                                            Priority: High to Low
+                                        </option>
+
+                                        <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
+                                            Due Date: Earliest First
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Start Date -->
+
+                                <div class="search-field">
+
+                                    <label for="start_date">
+                                        Start Date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        id="start_date"
+                                        name="start_date"
+                                        value="{{ start_date|default:'' }}"
+                                    >
+
+                                </div>
+
+                                <!-- End Date -->
+
+                                <div class="search-field">
+
+                                    <label for="end_date">
+                                        End Date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        id="end_date"
+                                        name="end_date"
+                                        value="{{ end_date|default:'' }}"
+                                    >
+
+                                </div>
+
+                            </div>
+
+                            <!-- Search Actions -->
+
+                            <div class="search-actions">
+
+                                <button type="submit">
+                                    Apply Filters
+                                </button>
+
+                                <a
+                                    href="{% url 'dashboard' %}"
+                                    class="clear-filters"
+                                >
+                                    Clear All Filters
+                                </a>
+
+                            </div>
+
+                        </form>
 
                     </div>
-
-                    <!-- Sorting -->
-
-                    <form method="GET" action="{% url 'dashboard' %}">
-
-                        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-                        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-
-                        <label>Sort Tasks:</label>
-
-                        <select name="sort" onchange="this.form.submit()">
-
-                            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>
-                                Newest First
-                            </option>
-
-                            <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
-                                Oldest First
-                            </option>
-
-                            <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
-                                Priority: High to Low
-                            </option>
-
-                            <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
-                                Due Date: Earliest First
-                            </option>
-
-                        </select>
-
-                    </form>
-
-                    <br>
-
-                    <!-- Category Filter -->
-
-                    <form method="GET" action="{% url 'dashboard' %}">
-
-                        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-                        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-                        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
-
-                        <label>Filter by Category:</label>
-
-                        <select name="category" onchange="this.form.submit()">
-
-                            <option value="" {% if not selected_category %}selected{% endif %}>
-                                All Categories
-                            </option>
-
-                            <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>
-                                Work
-                            </option>
-
-                            <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>
-                                Personal
-                            </option>
-
-                            <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>
-                                Study
-                            </option>
-
-                            <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>
-                                Shopping
-                            </option>
-
-                            <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>
-                                Other
-                            </option>
-
-                        </select>
-
-                    </form>
-
-                    <br>
-
-                    <!-- Priority Filter -->
-
-                    <form method="GET" action="{% url 'dashboard' %}">
-
-                        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-                        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-                        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
-                        <input type="hidden" name="category" value="{{ selected_category|default:'' }}">
-
-                        <label>Filter by Priority:</label>
-
-                        <select name="priority" onchange="this.form.submit()">
-
-                            <option value="" {% if not selected_priority %}selected{% endif %}>
-                                All Priorities
-                            </option>
-
-                            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
-                                High
-                            </option>
-
-                            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
-                                Medium
-                            </option>
-
-                            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
-                                Low
-                            </option>
-
-                        </select>
-
-                    </form>
-
-                    <br>
-
-                    <!-- Date Range Filter -->
-
-                    <form method="GET" action="{% url 'dashboard' %}">
-
-                        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-                        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-                        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
-                        <input type="hidden" name="category" value="{{ selected_category|default:'' }}">
-                        <input type="hidden" name="priority" value="{{ selected_priority|default:'' }}">
-
-                        <label>Filter by Due Date:</label>
-
-                        <label for="start_date">Start Date:</label>
-
-                        <input
-                            type="date"
-                            id="start_date"
-                            name="start_date"
-                            value="{{ start_date|default:'' }}"
-                        >
-
-                        <label for="end_date">End Date:</label>
-
-                        <input
-                            type="date"
-                            id="end_date"
-                            name="end_date"
-                            value="{{ end_date|default:'' }}"
-                        >
-
-                        <button type="submit">Apply Date Filter</button>
-
-                        <a href="{% url 'dashboard' %}">Clear Filters</a>
-
-                    </form>
 
                     <hr>
 
@@ -895,11 +1006,11 @@
 
                             {% if tasks.has_previous %}
 
-                                <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                                <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
                                     First
                                 </a>
 
-                                <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                                <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
                                     Previous
                                 </a>
 
@@ -911,11 +1022,11 @@
 
                             {% if tasks.has_next %}
 
-                                <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                                <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
                                     Next
                                 </a>
 
-                                <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                                <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
                                     Last
                                 </a>
 
@@ -925,7 +1036,7 @@
 
                     {% else %}
 
-                        <p>No tasks available yet.</p>
+                        <p>No tasks available for the selected filters.</p>
 
                     {% endif %}
 
@@ -952,16 +1063,12 @@
 
         const themeToggle = document.getElementById('theme-toggle');
 
-        // Load previously selected theme
-
         const savedTheme = localStorage.getItem('planit-theme');
 
         if (savedTheme === 'dark') {
             document.body.classList.add('dark-theme');
             themeToggle.textContent = 'Switch to Light Mode';
         }
-
-        // Toggle theme when button is clicked
 
         themeToggle.addEventListener('click', function () {
 
