@@ -10,7 +10,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
 from datetime import timedelta
-
+import calendar
+from datetime import datetime, timedelta
 
 def register(request):
 
@@ -297,3 +298,92 @@ def change_password(request):
         return redirect('dashboard')
 
     return render(request, 'tasks/change_password.html')
+
+
+@login_required
+def calendar_view(request):
+
+    today = timezone.localdate()
+
+    try:
+        year = int(request.GET.get('year', today.year))
+        month = int(request.GET.get('month', today.month))
+
+        if month < 1 or month > 12:
+            raise ValueError
+
+        if year < 1900 or year > 9999:
+            raise ValueError
+
+    except (ValueError, TypeError):
+        year = today.year
+        month = today.month
+
+    first_day = datetime(year, month, 1)
+
+    if month == 12:
+        next_month = datetime(year + 1, 1, 1)
+    else:
+        next_month = datetime(year, month + 1, 1)
+
+    start_date = timezone.make_aware(
+        first_day,
+        timezone.get_current_timezone()
+    )
+
+    end_date = timezone.make_aware(
+        next_month,
+        timezone.get_current_timezone()
+    )
+
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__gte=start_date,
+        due_date__lt=end_date
+    ).order_by('due_date')
+
+    tasks_by_date = {}
+
+    for task in tasks:
+        task_date = timezone.localtime(task.due_date).date()
+
+        tasks_by_date.setdefault(task_date, []).append(task)
+
+    calendar_data = []
+
+    month_calendar = calendar.Calendar(
+        firstweekday=0
+    ).monthdatescalendar(year, month)
+
+    for week in month_calendar:
+
+        week_data = []
+
+        for day in week:
+
+            week_data.append({
+                'date': day,
+                'is_current_month': day.month == month,
+                'tasks': tasks_by_date.get(day, [])
+                if day.month == month else []
+            })
+
+        calendar_data.append(week_data)
+
+    previous_month = (
+        datetime(year, month, 1) - timedelta(days=1)
+    )
+
+    if month == 12:
+        following_month = datetime(year + 1, 1, 1)
+    else:
+        following_month = datetime(year, month + 1, 1)
+
+    return render(request, 'tasks/calendar.html', {
+        'calendar_data': calendar_data,
+        'month_name': calendar.month_name[month],
+        'year': year,
+        'previous_month': previous_month,
+        'following_month': following_month,
+        'today': today,
+    })
