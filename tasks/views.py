@@ -15,7 +15,8 @@ from datetime import datetime, timedelta
 import json
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
@@ -578,3 +579,126 @@ def weekly_tasks(request):
         'next_week': start_date + timedelta(days=7),
         'selected_date': selected_date,
     })
+
+def send_password_reset_email(user):
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    reset_path = reverse(
+        'password_reset_confirm',
+        kwargs={
+            'uidb64': uid,
+            'token': token
+        }
+    )
+
+    reset_url = f"{settings.SITE_URL.rstrip('/')}{reset_path}"
+
+    payload = {
+        "sender": {
+            "name": "PlanIt-Todo",
+            "email": settings.BREVO_SENDER_EMAIL
+        },
+        "to": [
+            {
+                "email": user.email
+            }
+        ],
+        "subject": "Reset Your PlanIt-Todo Password",
+        "htmlContent": f"""
+            <h2>Password Reset Request</h2>
+            <p>Click the link below to reset your password:</p>
+            <a href="{reset_url}">Reset Password</a>
+            <p>If you did not request this, ignore this email.</p>
+        """
+    }
+
+    request = Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            "api-key": settings.BREVO_API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        method="POST"
+    )
+
+    try:
+        with urlopen(request, timeout=15) as response:
+            return response.status in (200, 201, 202)
+
+    except (HTTPError, URLError, TimeoutError) as error:
+        print("Brevo password reset error:", error)
+        return False
+    
+def password_reset_request(request):
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email', '').strip()
+
+        user = User.objects.filter(
+            email__iexact=email,
+            is_active=True
+        ).first()
+
+        if user:
+            send_password_reset_email(user)
+
+        return render(
+            request,
+            'tasks/password_reset_sent.html'
+        )
+
+    return render(request, 'tasks/password_reset.html')
+
+def password_reset_confirm(request, uidb64, token):
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid, is_active=True)
+
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        return render(
+            request,
+            'tasks/password_reset.html',
+            {
+                'error': 'Invalid or expired password reset link.'
+            }
+        )
+
+    if request.method == 'POST':
+
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            return render(request, 'tasks/password_reset_confirm.html', {
+                'error': 'Passwords do not match.'
+            })
+
+        try:
+            validate_password(password, user)
+
+        except ValidationError as error:
+            return render(request, 'tasks/password_reset_confirm.html', {
+                'error': ' '.join(error.messages)
+            })
+
+        user.set_password(password)
+        user.save()
+
+        return render(
+            request,
+            'tasks/password_reset_complete.html'
+        )
+
+    return render(
+        request,
+        'tasks/password_reset_confirm.html'
+    )
