@@ -387,3 +387,29 @@ def calendar_view(request):
         'following_month': following_month,
         'today': today,
     })
+
+@login_required
+def daily_tasks(request):
+
+    selected_date = request.GET.get('date')
+
+    try:
+        if selected_date:
+            selected_date = datetime.strptime(
+                selected_date, '%Y-%m-%d'
+            ).date()
+        else:
+            selected_date = timezone.localdate()
+
+    except ValueError:
+        selected_date = timezone.localdate()
+
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__date=selected_date
+    ).order_by('due_date')
+
+    return render(request, 'tasks/daily_tasks.html', {
+        'tasks': tasks,
+        'selected_date': selected_date,
+    })
