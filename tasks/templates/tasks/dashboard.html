@@ -12,12 +12,61 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f4f6f9;
             color: #333;
             transition: background-color 0.3s, color 0.3s;
+            animation: pageFadeIn 0.5s ease-out;
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInSidebar {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes contentFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes notificationAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes buttonPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
         }
 
         .app-layout {
@@ -36,6 +85,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            animation: slideInSidebar 0.5s ease-out;
         }
 
         .sidebar-brand {
@@ -57,13 +107,15 @@
             color: #cbd5e1;
             text-decoration: none;
             border-radius: 7px;
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.2s, color 0.2s,
+                transform 0.2s;
         }
 
         .sidebar-menu a:hover {
             background-color: #334155;
             color: white;
             text-decoration: none;
+            transform: translateX(5px);
         }
 
         .sidebar-menu a.active {
@@ -82,11 +134,13 @@
             color: #cbd5e1;
             text-decoration: none;
             border-radius: 7px;
+            transition: background-color 0.2s, transform 0.2s;
         }
 
         .sidebar-bottom a:hover {
             background-color: #334155;
             color: white;
+            transform: translateX(5px);
         }
 
         /* Main Content */
@@ -95,6 +149,7 @@
             flex: 1;
             min-width: 0;
             padding: 25px;
+            animation: contentFadeIn 0.6s ease-out;
         }
 
         .container {
@@ -151,7 +206,14 @@
             border-radius: 10px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s, color 0.3s,
+                box-shadow 0.3s, transform 0.3s;
+            animation: contentFadeIn 0.6s ease-out both;
+        }
+
+        .profile:hover,
+        .section:hover {
+            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.09);
         }
 
         h2, h3, h4 {
@@ -162,6 +224,7 @@
             color: #2563eb;
             text-decoration: none;
             margin-right: 10px;
+            transition: color 0.2s;
         }
 
         a:hover {
@@ -178,6 +241,15 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
         textarea {
@@ -193,10 +265,19 @@
             color: white;
             cursor: pointer;
             margin-top: 8px;
+            transition: background-color 0.2s, transform 0.2s,
+                box-shadow 0.2s;
         }
 
         button:hover {
             background-color: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(37, 99, 235, 0.2);
+        }
+
+        button:active {
+            transform: scale(0.97);
+            box-shadow: none;
         }
 
         .task-card {
@@ -206,7 +287,13 @@
             padding: 18px;
             margin-bottom: 15px;
             transition: background-color 0.2s, border-color 0.2s,
-                opacity 0.2s, transform 0.2s;
+                opacity 0.2s, transform 0.25s, box-shadow 0.25s;
+            animation: contentFadeIn 0.45s ease-out both;
+        }
+
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08);
         }
 
         .task-card h4 {
@@ -312,6 +399,12 @@
             padding: 20px;
             border-radius: 8px;
             text-align: center;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 14px rgba(37, 99, 235, 0.12);
         }
 
         .stat-card h3 {
@@ -333,6 +426,14 @@
             margin-top: 20px;
         }
 
+        .pagination a {
+            transition: transform 0.2s;
+        }
+
+        .pagination a:hover {
+            transform: translateY(-2px);
+        }
+
         /* Advanced Search */
 
         .advanced-search {
@@ -341,6 +442,7 @@
             border-radius: 8px;
             padding: 20px;
             margin-top: 15px;
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         .search-grid {
@@ -387,11 +489,13 @@
             color: #2563eb;
             text-decoration: none;
             margin-right: 0;
+            transition: background-color 0.2s, transform 0.2s;
         }
 
         .clear-filters:hover {
             background-color: #eff6ff;
             text-decoration: none;
+            transform: translateY(-2px);
         }
 
         .filter-heading {
@@ -417,6 +521,7 @@
 
         .notification-popup.show {
             display: block;
+            animation: notificationAppear 0.3s ease-out;
         }
 
         .notification-popup h4 {
@@ -445,6 +550,11 @@
             background-color: #1e293b;
             color: #e2e8f0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        body.dark-theme .profile:hover,
+        body.dark-theme .section:hover {
+            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
         }
 
         body.dark-theme .task-card {
@@ -578,6 +688,19 @@
 
             .advanced-search {
                 padding: 14px;
+            }
+        }
+
+        /* Accessibility: Respect reduced-motion preference */
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
             }
         }
     </style>
@@ -1260,6 +1383,7 @@
         function getSavedTaskOrder() {
 
             try {
+
                 const savedOrder = localStorage.getItem(taskOrderStorageKey);
 
                 return savedOrder ? JSON.parse(savedOrder) : [];
@@ -1281,8 +1405,6 @@
             });
 
             const savedOrder = getSavedTaskOrder();
-
-            // Keep task IDs from other pages and filtered results.
 
             const combinedOrder = [
                 ...currentOrder,
@@ -1354,8 +1476,6 @@
 
                 const dragHandle = card.querySelector('.drag-handle');
 
-                // Start dragging only when using the drag handle.
-
                 card.addEventListener('dragstart', function (event) {
 
                     if (!card.dataset.dragAllowed) {
@@ -1423,20 +1543,14 @@
                         event.clientY > rect.top + rect.height / 2;
 
                     if (dropAfter) {
-
                         card.after(draggedTask);
-
                     } else {
-
                         card.before(draggedTask);
-
                     }
 
                     saveTaskOrder();
 
                 });
-
-                // Enable dragging only after the handle is used.
 
                 dragHandle.addEventListener('mousedown', function () {
                     card.dataset.dragAllowed = 'true';
@@ -1453,8 +1567,6 @@
                 });
 
             });
-
-            // Reset saved order.
 
             resetTaskOrderButton.addEventListener('click', function () {
 
