@@ -22,6 +22,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+import hashlib
+from django.core.cache import cache
+
 
 def send_verification_email(user):
 
@@ -243,11 +246,42 @@ def dashboard(request):
 
 def user_login(request):
 
+    MAX_LOGIN_ATTEMPTS = 5
+    LOCKOUT_TIME = 15 * 60  # 15 minutes
+
     if request.method == 'POST':
 
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
 
+        # Get client IP address
+        ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+
+        # Generate secure cache keys
+        username_hash = hashlib.sha256(
+            username.casefold().encode()
+        ).hexdigest()
+
+        ip_hash = hashlib.sha256(
+            ip_address.encode()
+        ).hexdigest()
+
+        username_key = f'login_username_{username_hash}'
+        ip_key = f'login_ip_{ip_hash}'
+
+        # Check whether the login attempts have exceeded the limit
+        username_attempts = cache.get(username_key, 0)
+        ip_attempts = cache.get(ip_key, 0)
+
+        if (
+            username_attempts >= MAX_LOGIN_ATTEMPTS
+            or ip_attempts >= MAX_LOGIN_ATTEMPTS
+        ):
+            return render(request, 'tasks/login.html', {
+                'error': 'Too many failed login attempts. Please try again after 15 minutes.'
+            })
+
+        # Authenticate user
         user = authenticate(
             request,
             username=username,
@@ -255,15 +289,33 @@ def user_login(request):
         )
 
         if user is not None:
+
+            # Clear failed attempts after successful login
+            cache.delete(username_key)
+            cache.delete(ip_key)
+
             login(request, user)
+
             return redirect('dashboard')
+
+        # Increase failed login attempts
+        cache.set(
+            username_key,
+            username_attempts + 1,
+            timeout=LOCKOUT_TIME
+        )
+
+        cache.set(
+            ip_key,
+            ip_attempts + 1,
+            timeout=LOCKOUT_TIME
+        )
 
         return render(request, 'tasks/login.html', {
             'error': 'Invalid username or password'
         })
 
     return render(request, 'tasks/login.html')
-
 
 def user_logout(request):
 
