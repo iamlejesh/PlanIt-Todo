@@ -1,1672 +1,353 @@
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo Dashboard</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
-            transition: background-color 0.3s, color 0.3s;
-            animation: pageFadeIn 0.5s ease-out;
-        }
-
-        @keyframes pageFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideInSidebar {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes contentFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes notificationAppear {
-            from {
-                opacity: 0;
-                transform: translateY(-12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes buttonPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.04); }
-            100% { transform: scale(1); }
-        }
-
-        .app-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-
-        .sidebar {
-            width: 250px;
-            min-width: 250px;
-            background-color: #1e293b;
-            color: white;
-            padding: 25px 15px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            animation: slideInSidebar 0.5s ease-out;
-        }
-
-        .sidebar-brand {
-            font-size: 23px;
-            font-weight: bold;
-            padding: 0 12px 30px;
-            color: white;
-        }
-
-        .sidebar-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sidebar-menu a {
-            display: block;
-            padding: 13px 15px;
-            color: #cbd5e1;
-            text-decoration: none;
-            border-radius: 7px;
-            transition: background-color 0.2s, color 0.2s,
-                transform 0.2s;
-        }
-
-        .sidebar-menu a:hover {
-            background-color: #334155;
-            color: white;
-            text-decoration: none;
-            transform: translateX(5px);
-        }
-
-        .sidebar-menu a.active {
-            background-color: #2563eb;
-            color: white;
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            padding-top: 30px;
-        }
-
-        .sidebar-bottom a {
-            display: block;
-            padding: 12px 15px;
-            color: #cbd5e1;
-            text-decoration: none;
-            border-radius: 7px;
-            transition: background-color 0.2s, transform 0.2s;
-        }
-
-        .sidebar-bottom a:hover {
-            background-color: #334155;
-            color: white;
-            transform: translateX(5px);
-        }
-
-        /* Main Content */
-
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            padding: 25px;
-            animation: contentFadeIn 0.6s ease-out;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: auto;
-        }
-
-        .mobile-menu-button {
-            display: none;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            background-color: #1e293b;
-        }
-
-        .header {
-            background-color: #2563eb;
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            margin: 0 0 10px;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .header-top h1 {
-            margin: 0;
-        }
-
-        .theme-toggle {
-            background-color: white;
-            color: #1e293b;
-            border: 1px solid #e2e8f0;
-            margin-top: 0;
-        }
-
-        .theme-toggle:hover {
-            background-color: #e2e8f0;
-        }
-
-        .profile,
-        .section {
-            background-color: white;
-            padding: 22px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            transition: background-color 0.3s, color 0.3s,
-                box-shadow 0.3s, transform 0.3s;
-            animation: contentFadeIn 0.6s ease-out both;
-        }
-
-        .profile:hover,
-        .section:hover {
-            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.09);
-        }
-
-        h2, h3, h4 {
-            margin-top: 0;
-        }
-
-        a {
-            color: #2563eb;
-            text-decoration: none;
-            margin-right: 10px;
-            transition: color 0.2s;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        input,
-        textarea,
-        select {
-            width: 100%;
-            max-width: 450px;
-            padding: 10px;
-            margin-top: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-
-        textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            background-color: #2563eb;
-            color: white;
-            cursor: pointer;
-            margin-top: 8px;
-            transition: background-color 0.2s, transform 0.2s,
-                box-shadow 0.2s;
-        }
-
-        button:hover {
-            background-color: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(37, 99, 235, 0.2);
-        }
-
-        button:active {
-            transform: scale(0.97);
-            box-shadow: none;
-        }
-
-        .task-card {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 18px;
-            margin-bottom: 15px;
-            transition: background-color 0.2s, border-color 0.2s,
-                opacity 0.2s, transform 0.25s, box-shadow 0.25s;
-            animation: contentFadeIn 0.45s ease-out both;
-        }
-
-        .task-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08);
-        }
-
-        .task-card h4 {
-            font-size: 18px;
-            margin-bottom: 12px;
-        }
-
-        /* Drag and Drop */
-
-        .task-list {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .task-card.dragging {
-            opacity: 0.4;
-            border: 2px dashed #2563eb;
-            transform: scale(0.99);
-        }
-
-        .task-card.drag-over {
-            border: 2px solid #2563eb;
-            background-color: #eff6ff;
-        }
-
-        .task-card.drag-disabled {
-            cursor: default;
-        }
-
-        .task-card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .task-card-header h4 {
-            flex: 1;
-            margin-bottom: 12px;
-        }
-
-        .drag-handle {
-            background-color: #e2e8f0;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 7px 10px;
-            margin: 0 0 10px;
-            cursor: grab;
-            font-size: 18px;
-            line-height: 1;
-        }
-
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-
-        .drag-handle:focus {
-            outline: 2px solid #2563eb;
-            outline-offset: 2px;
-        }
-
-        .drag-instructions {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 15px;
-        }
-
-        .drag-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .drag-actions button {
-            margin-top: 0;
-        }
-
-        .reset-order-button {
-            background-color: #64748b;
-        }
-
-        .reset-order-button:hover {
-            background-color: #475569;
-        }
-
-        .drag-status {
-            font-size: 13px;
-            color: #15803d;
-            margin: 8px 0;
-        }
-
-        .statistics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .stat-card {
-            background-color: #eff6ff;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            transition: transform 0.25s, box-shadow 0.25s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 14px rgba(37, 99, 235, 0.12);
-        }
-
-        .stat-card h3 {
-            font-size: 25px;
-            color: #2563eb;
-            margin-bottom: 5px;
-        }
-
-        .danger {
-            color: #dc2626;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .pagination a {
-            transition: transform 0.2s;
-        }
-
-        .pagination a:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Advanced Search */
-
-        .advanced-search {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 15px;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        .search-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 15px;
-        }
-
-        .search-field {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .search-field label {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .search-field input,
-        .search-field select {
-            width: 100%;
-            max-width: none;
-            margin-top: 4px;
-        }
-
-        .search-actions {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 18px;
-        }
-
-        .search-actions button {
-            margin-top: 0;
-        }
-
-        .clear-filters {
-            display: inline-block;
-            padding: 10px 16px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            color: #2563eb;
-            text-decoration: none;
-            margin-right: 0;
-            transition: background-color 0.2s, transform 0.2s;
-        }
-
-        .clear-filters:hover {
-            background-color: #eff6ff;
-            text-decoration: none;
-            transform: translateY(-2px);
-        }
-
-        .filter-heading {
-            margin-bottom: 5px;
-        }
-
-        /* Notification Popup */
-
-        .notification-popup {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 320px;
-            max-width: calc(100% - 40px);
-            background-color: white;
-            border-left: 5px solid #2563eb;
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            display: none;
-        }
-
-        .notification-popup.show {
-            display: block;
-            animation: notificationAppear 0.3s ease-out;
-        }
-
-        .notification-popup h4 {
-            margin-bottom: 8px;
-            color: #2563eb;
-        }
-
-        .notification-popup p {
-            margin: 0;
-            overflow-wrap: anywhere;
-        }
-
-        /* Dark Theme */
-
-        body.dark-theme {
-            background-color: #0f172a;
-            color: #e2e8f0;
-        }
-
-        body.dark-theme .main-content {
-            background-color: #0f172a;
-        }
-
-        body.dark-theme .profile,
-        body.dark-theme .section {
-            background-color: #1e293b;
-            color: #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-        }
-
-        body.dark-theme .profile:hover,
-        body.dark-theme .section:hover {
-            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        body.dark-theme .task-card {
-            background-color: #334155;
-            border-color: #475569;
-            color: #e2e8f0;
-        }
-
-        body.dark-theme .task-card.drag-over {
-            background-color: #1e3a5f;
-            border-color: #60a5fa;
-        }
-
-        body.dark-theme .stat-card {
-            background-color: #334155;
-        }
-
-        body.dark-theme .stat-card h3 {
-            color: #60a5fa;
-        }
-
-        body.dark-theme input,
-        body.dark-theme textarea,
-        body.dark-theme select {
-            background-color: #334155;
-            color: #e2e8f0;
-            border-color: #475569;
-        }
-
-        body.dark-theme input::placeholder,
-        body.dark-theme textarea::placeholder {
-            color: #cbd5e1;
-        }
-
-        body.dark-theme .advanced-search {
-            background-color: #0f172a;
-            border-color: #475569;
-        }
-
-        body.dark-theme .notification-popup {
-            background-color: #1e293b;
-            color: #e2e8f0;
-        }
-
-        body.dark-theme .notification-popup h4 {
-            color: #60a5fa;
-        }
-
-        body.dark-theme hr {
-            border-color: #475569;
-        }
-
-        body.dark-theme .theme-toggle {
-            background-color: #334155;
-            color: #e2e8f0;
-            border-color: #475569;
-        }
-
-        body.dark-theme .theme-toggle:hover {
-            background-color: #475569;
-        }
-
-        body.dark-theme .clear-filters {
-            border-color: #475569;
-            color: #93c5fd;
-        }
-
-        body.dark-theme .clear-filters:hover {
-            background-color: #334155;
-        }
-
-        body.dark-theme .drag-handle {
-            background-color: #475569;
-            color: #e2e8f0;
-            border-color: #64748b;
-        }
-
-        body.dark-theme .drag-instructions {
-            color: #cbd5e1;
-        }
-
-        body.dark-theme .drag-status {
-            color: #86efac;
-        }
-
-        /* Responsive Layout */
-
-        @media (max-width: 768px) {
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: -260px;
-                height: 100vh;
-                z-index: 1100;
-                transition: left 0.3s ease;
-            }
-
-            .sidebar.open {
-                left: 0;
-            }
-
-            .mobile-menu-button {
-                display: inline-block;
-            }
-
-            .main-content {
-                width: 100%;
-                padding: 15px;
-            }
-
-            .statistics {
-                grid-template-columns: 1fr;
-            }
-
-            .search-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-
-            .profile,
-            .section {
-                padding: 16px;
-            }
-
-            .header {
-                padding: 18px;
-            }
-
-            .advanced-search {
-                padding: 14px;
-            }
-        }
-
-        /* Accessibility: Respect reduced-motion preference */
-
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="app-layout">
-
-        <!-- Sidebar -->
-
-        <aside class="sidebar" id="sidebar">
-
-            <div class="sidebar-brand">
-                PlanIt Todo
+{% extends "tasks/layouts/app.html" %}
+{% load static planit_ui %}
+
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span class="crumb-current">Dashboard</span>{% endblock %}
+{% block topbar_search %}{% endblock %}
+
+{% block content %}
+{% widthratio completed_tasks total_tasks 100 as completion %}
+{% with overdue_count=overdue_tasks|length upcoming_count=upcoming_tasks|length %}
+
+<!-- Welcome -->
+<section class="page-header reveal">
+    <div class="page-header-main">
+        <p class="eyebrow" data-today-label>{% now "l, F j" %}</p>
+        <h1 class="page-title"><span data-greeting>Welcome back</span>, {{ request.user|display_name }}</h1>
+        <p class="page-subtitle">
+            {% if total_tasks == 0 %}
+                Your workspace is ready. Add your first task to start planning your day.
+            {% elif pending_tasks == 0 %}
+                Everything’s done — you’ve completed all <strong>{{ total_tasks }}</strong> task{{ total_tasks|pluralize }}. Enjoy the clear list.
+            {% else %}
+                You have <strong>{{ pending_tasks }}</strong> open task{{ pending_tasks|pluralize }}{% if overdue_count %}, <strong class="text-danger">{{ overdue_count }} overdue</strong>{% endif %}{% if upcoming_count %} and <strong>{{ upcoming_count }}</strong> due in the next 24 hours{% endif %}.
+            {% endif %}
+        </p>
+    </div>
+    {% include "tasks/partials/art.html" with art="welcome" css="welcome-art" %}
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="{% url 'daily_tasks' %}">{% icon 'sun' 16 %}<span>Daily tasks</span></a>
+        <button type="button" class="btn btn-primary" data-open-task-modal>{% icon 'plus' 16 %}<span>New task</span></button>
+    </div>
+</section>
+
+<!-- Overview -->
+<section class="stats-grid" aria-label="Task overview">
+    <a class="stat-card tone-accent reveal" style="--i:1" href="{% url 'dashboard' %}#tasks">
+        <div class="stat-head">
+            <span class="stat-label">Total tasks</span>
+            <span class="stat-icon">{% icon 'list-checks' 16 %}</span>
+        </div>
+        <p class="stat-value">{{ total_tasks }}</p>
+        <p class="stat-meta">{% icon 'layout-dashboard' 12 %}<span>Across all categories</span></p>
+    </a>
+
+    <a class="stat-card tone-success reveal" style="--i:2" href="?status=completed#tasks">
+        <div class="stat-head">
+            <span class="stat-label">Completed</span>
+            <span class="stat-icon">{% icon 'check-circle' 16 %}</span>
+        </div>
+        <p class="stat-value">{{ completed_tasks }}</p>
+        <div class="stat-bar" aria-hidden="true"><span style="--value: {{ completion }}%"></span></div>
+        <p class="stat-meta"><strong>{{ completion }}%</strong> <span>completion rate</span></p>
+    </a>
+
+    <a class="stat-card tone-warning reveal" style="--i:3" href="?status=pending#tasks">
+        <div class="stat-head">
+            <span class="stat-label">Pending</span>
+            <span class="stat-icon">{% icon 'hourglass' 16 %}</span>
+        </div>
+        <p class="stat-value">{{ pending_tasks }}</p>
+        <p class="stat-meta">{% icon 'clock' 12 %}<strong>{{ upcoming_count }}</strong> <span>due in 24h</span></p>
+    </a>
+
+    <a class="stat-card tone-danger reveal{% if overdue_count %} is-alert{% endif %}" style="--i:4" href="#overdue">
+        <div class="stat-head">
+            <span class="stat-label">Overdue</span>
+            <span class="stat-icon">{% icon 'alert-triangle' 16 %}</span>
+        </div>
+        <p class="stat-value">{{ overdue_count }}</p>
+        <p class="stat-meta">
+            {% if overdue_count %}{% icon 'alert-circle' 12 %}<span>Needs your attention</span>
+            {% else %}{% icon 'check' 12 %}<span>You’re on track</span>{% endif %}
+        </p>
+    </a>
+</section>
+
+<div class="dashboard-grid">
+
+    <!-- Tasks -->
+    <section class="panel reveal" style="--i:5" id="tasks" aria-labelledby="tasks-heading">
+        <header class="panel-header">
+            <div>
+                <h2 class="panel-title" id="tasks-heading">My tasks</h2>
+                <p class="panel-subtitle">
+                    {{ tasks.paginator.count }} task{{ tasks.paginator.count|pluralize }}
+                    {% if search_query or selected_category or selected_priority or start_date or end_date or selected_status %}match your filters{% else %}in your list{% endif %}
+                </p>
             </div>
+            <button type="button" class="btn btn-ghost btn-sm" id="reset-task-order" hidden>
+                {% icon 'rotate' 14 %}<span>Reset order</span>
+            </button>
+        </header>
 
-            <nav class="sidebar-menu">
-
-                <a href="{% url 'dashboard' %}" class="active">
-                    Dashboard
-                </a>
-
-                <a href="{% url 'calendar' %}">
-                    Calendar
-                </a>
-
-                <a href="{% url 'daily_tasks' %}">
-                    Daily Tasks
-                </a>
-
-                <a href="{% url 'weekly_tasks' %}">
-                    Weekly Tasks
-                </a>
-
-                <a href="{% url 'notifications' %}">
-                    Notifications
-                    (<span id="unread-notification-count">{{ unread_notifications_count }}</span>)
-                </a>
-
-                <a href="{% url 'notification_settings' %}">
-                    Notification Settings
-                </a>
-
+        <form class="task-toolbar" method="GET" action="{% url 'dashboard' %}" role="search" aria-label="Search and filter tasks">
+            <nav class="segmented" aria-label="Filter by status">
+                <a href="{% querystring status=None page=None %}#tasks" class="segmented-item{% if not selected_status %} is-active{% endif %}" {% if not selected_status %}aria-current="true"{% endif %}>All <span class="seg-count">{{ total_tasks }}</span></a>
+                <a href="{% querystring status='pending' page=None %}#tasks" class="segmented-item{% if selected_status == 'pending' %} is-active{% endif %}" {% if selected_status == 'pending' %}aria-current="true"{% endif %}>Pending <span class="seg-count">{{ pending_tasks }}</span></a>
+                <a href="{% querystring status='completed' page=None %}#tasks" class="segmented-item{% if selected_status == 'completed' %} is-active{% endif %}" {% if selected_status == 'completed' %}aria-current="true"{% endif %}>Completed <span class="seg-count">{{ completed_tasks }}</span></a>
             </nav>
 
-            <div class="sidebar-bottom">
-
-                <a href="{% url 'edit_profile' %}">
-                    Edit Profile
-                </a>
-
-                <a href="{% url 'change_password' %}">
-                    Change Password
-                </a>
-
-                <form method="POST" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" style="width: 100%;">
-                        Logout
-                    </button>
-                </form>
-
+            <div class="toolbar-search input-group">
+                <label class="sr-only" for="task-search">Search tasks</label>
+                <span class="input-icon">{% icon 'search' 15 %}</span>
+                <input class="input" type="search" id="task-search" name="search" placeholder="Search tasks by title…" value="{{ search_query|default:'' }}" data-search-input autocomplete="off">
             </div>
 
-        </aside>
+            <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
 
-        <!-- Main Dashboard -->
+            <button type="button" class="btn btn-secondary filter-toggle" data-toggle-target="filter-panel" aria-controls="filter-panel" aria-expanded="false">
+                {% icon 'filter' 15 %}<span>Filters</span>
+                {% if selected_category or selected_priority or start_date or end_date or selected_sort != 'newest' %}<span class="filter-dot" aria-label="Filters active"></span>{% endif %}
+            </button>
 
-        <main class="main-content">
-
-            <div class="container">
-
-                <button
-                    type="button"
-                    class="mobile-menu-button"
-                    id="mobile-menu-button"
-                    aria-label="Toggle navigation"
-                    aria-expanded="false"
-                >
-                    Menu
-                </button>
-
-                <!-- User Profile -->
-
-                <div class="profile">
-
-                    <h2>User Profile</h2>
-
-                    <p>Username: {{ request.user.username }}</p>
-                    <p>Email: {{ request.user.email }}</p>
-
-                    <a href="{% url 'edit_profile' %}">Edit Profile</a>
-                    <a href="{% url 'change_password' %}">Change Password</a>
-
-                </div>
-
-                <!-- Dashboard Header -->
-
-                <div class="header">
-
-                    <div class="header-top">
-
-                        <h1>Todo Dashboard</h1>
-
-                        <button
-                            type="button"
-                            class="theme-toggle"
-                            id="theme-toggle"
-                        >
-                            Switch to Dark Mode
-                        </button>
-
-                    </div>
-
-                    <h2>Welcome {{ request.user.username }}!</h2>
-
-                    <p>You have successfully logged in.</p>
-
-                </div>
-
-                <!-- Create Task -->
-
-                <div class="section">
-
-                    <h3>Create New Task</h3>
-
-                    <form method="POST" action="{% url 'create_task' %}">
-                        {% csrf_token %}
-
-                        <input type="text" name="title" placeholder="Enter task title" required>
-                        <br><br>
-
-                        <textarea name="description" placeholder="Enter task description"></textarea>
-                        <br><br>
-
-                        <label>Priority:</label>
-                        <br>
-
-                        <select name="priority">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
+            <div class="filter-panel" id="filter-panel" hidden>
+                <div class="filter-grid">
+                    <div class="field">
+                        <label class="label" for="category-filter">Category</label>
+                        <select class="select" id="category-filter" name="category">
+                            <option value="" {% if not selected_category %}selected{% endif %}>All categories</option>
+                            <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>Work</option>
+                            <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>Personal</option>
+                            <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>Study</option>
+                            <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>Shopping</option>
+                            <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>Other</option>
                         </select>
-                        <br><br>
-
-                        <label>Category:</label>
-                        <br>
-
-                        <select name="category">
-                            <option value="Work">Work</option>
-                            <option value="Personal">Personal</option>
-                            <option value="Study">Study</option>
-                            <option value="Shopping">Shopping</option>
-                            <option value="Other" selected>Other</option>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="priority-filter">Priority</label>
+                        <select class="select" id="priority-filter" name="priority">
+                            <option value="" {% if not selected_priority %}selected{% endif %}>All priorities</option>
+                            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>High</option>
+                            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Medium</option>
+                            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Low</option>
                         </select>
-                        <br><br>
-
-                        <label>Due Date:</label>
-                        <br>
-
-                        <input type="datetime-local" name="due_date">
-                        <br><br>
-
-                        <button type="submit">Add Task</button>
-
-                    </form>
-
-                </div>
-
-                <!-- Overdue Tasks -->
-
-                <div class="section">
-
-                    <h3 class="danger">Overdue Tasks</h3>
-
-                    {% if overdue_tasks %}
-
-                        <p class="danger">
-                            You have {{ overdue_tasks.count }} overdue task(s).
-                        </p>
-
-                        {% for task in overdue_tasks %}
-                            <p>
-                                {{ task.title }} -
-                                Due: {{ task.due_date|date:"d-m-Y H:i" }}
-                            </p>
-                        {% endfor %}
-
-                    {% else %}
-
-                        <p>No overdue tasks.</p>
-
-                    {% endif %}
-
-                </div>
-
-                <!-- Upcoming Tasks -->
-
-                <div class="section">
-
-                    <h3>Upcoming Tasks (Next 24 Hours)</h3>
-
-                    {% if upcoming_tasks %}
-
-                        {% for task in upcoming_tasks %}
-
-                            <p>
-                                {{ task.title }} -
-                                Due: {{ task.due_date|date:"d-m-Y H:i" }}
-                            </p>
-
-                        {% endfor %}
-
-                    {% else %}
-
-                        <p>No upcoming tasks in the next 24 hours.</p>
-
-                    {% endif %}
-
-                </div>
-
-                <!-- Task Statistics -->
-
-                <div class="section">
-
-                    <h3>Task Statistics</h3>
-
-                    <div class="statistics">
-
-                        <div class="stat-card">
-                            <h3>{{ total_tasks }}</h3>
-                            <p>Total Tasks</p>
-                        </div>
-
-                        <div class="stat-card">
-                            <h3>{{ completed_tasks }}</h3>
-                            <p>Completed Tasks</p>
-                        </div>
-
-                        <div class="stat-card">
-                            <h3>{{ pending_tasks }}</h3>
-                            <p>Pending Tasks</p>
-                        </div>
-
                     </div>
-
-                </div>
-
-                <!-- My Tasks -->
-
-                <div class="section">
-
-                    <h3>My Tasks</h3>
-
-                    <!-- Advanced Search -->
-
-                    <div class="advanced-search">
-
-                        <h3 class="filter-heading">Advanced Search</h3>
-
-                        <p>
-                            Search and combine multiple filters to find your tasks.
-                        </p>
-
-                        <form method="GET" action="{% url 'dashboard' %}">
-
-                            <div class="search-grid">
-
-                                <div class="search-field">
-
-                                    <label for="task-search">
-                                        Search Tasks
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        id="task-search"
-                                        name="search"
-                                        placeholder="Search by title or description..."
-                                        value="{{ search_query|default:'' }}"
-                                    >
-
-                                </div>
-
-                                <div class="search-field">
-
-                                    <label for="status-filter">
-                                        Task Status
-                                    </label>
-
-                                    <select id="status-filter" name="status">
-
-                                        <option value="" {% if not selected_status %}selected{% endif %}>
-                                            All Tasks
-                                        </option>
-
-                                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>
-                                            Pending
-                                        </option>
-
-                                        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>
-                                            Completed
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div class="search-field">
-
-                                    <label for="category-filter">
-                                        Category
-                                    </label>
-
-                                    <select id="category-filter" name="category">
-
-                                        <option value="" {% if not selected_category %}selected{% endif %}>
-                                            All Categories
-                                        </option>
-
-                                        <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>
-                                            Work
-                                        </option>
-
-                                        <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>
-                                            Personal
-                                        </option>
-
-                                        <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>
-                                            Study
-                                        </option>
-
-                                        <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>
-                                            Shopping
-                                        </option>
-
-                                        <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>
-                                            Other
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div class="search-field">
-
-                                    <label for="priority-filter">
-                                        Priority
-                                    </label>
-
-                                    <select id="priority-filter" name="priority">
-
-                                        <option value="" {% if not selected_priority %}selected{% endif %}>
-                                            All Priorities
-                                        </option>
-
-                                        <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
-                                            High
-                                        </option>
-
-                                        <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
-                                            Medium
-                                        </option>
-
-                                        <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
-                                            Low
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div class="search-field">
-
-                                    <label for="sort-filter">
-                                        Sort Tasks
-                                    </label>
-
-                                    <select id="sort-filter" name="sort">
-
-                                        <option value="newest" {% if selected_sort == 'newest' or not selected_sort %}selected{% endif %}>
-                                            Newest First
-                                        </option>
-
-                                        <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
-                                            Oldest First
-                                        </option>
-
-                                        <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
-                                            Priority: High to Low
-                                        </option>
-
-                                        <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
-                                            Due Date: Earliest First
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div class="search-field">
-
-                                    <label for="start_date">
-                                        Start Date
-                                    </label>
-
-                                    <input
-                                        type="date"
-                                        id="start_date"
-                                        name="start_date"
-                                        value="{{ start_date|default:'' }}"
-                                    >
-
-                                </div>
-
-                                <div class="search-field">
-
-                                    <label for="end_date">
-                                        End Date
-                                    </label>
-
-                                    <input
-                                        type="date"
-                                        id="end_date"
-                                        name="end_date"
-                                        value="{{ end_date|default:'' }}"
-                                    >
-
-                                </div>
-
-                            </div>
-
-                            <div class="search-actions">
-
-                                <button type="submit">
-                                    Apply Filters
-                                </button>
-
-                                <a
-                                    href="{% url 'dashboard' %}"
-                                    class="clear-filters"
-                                >
-                                    Clear All Filters
-                                </a>
-
-                            </div>
-
-                        </form>
-
+                    <div class="field">
+                        <label class="label" for="sort-filter">Sort by</label>
+                        <select class="select" id="sort-filter" name="sort">
+                            <option value="newest" {% if selected_sort == 'newest' or not selected_sort %}selected{% endif %}>Newest first</option>
+                            <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                            <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>Priority: high to low</option>
+                            <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>Due date: earliest first</option>
+                        </select>
                     </div>
-
-                    <hr>
-
-                    <!-- Drag and Drop Controls -->
-
-                    <div class="drag-actions">
-
-                        <div>
-                            <strong>Arrange Your Tasks</strong>
-
-                            <p class="drag-instructions">
-                                Drag the handle on a task card to change its position.
-                            </p>
-                        </div>
-
-                        <button
-                            type="button"
-                            class="reset-order-button"
-                            id="reset-task-order"
-                        >
-                            Reset Order
-                        </button>
-
+                    <div class="field">
+                        <label class="label" for="start_date">Due from</label>
+                        <input class="input" type="date" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
                     </div>
-
-                    <p
-                        id="drag-status"
-                        class="drag-status"
-                        role="status"
-                        aria-live="polite"
-                    ></p>
-
-                    <!-- Task List -->
-
-                    {% if tasks %}
-
-                        <div class="task-list" id="task-list">
-
-                            {% for task in tasks %}
-
-                                <div
-                                    class="task-card"
-                                    draggable="true"
-                                    data-task-id="{{ task.id }}"
-                                >
-
-                                    <div class="task-card-header">
-
-                                        <button
-                                            type="button"
-                                            class="drag-handle"
-                                            aria-label="Drag to reorder {{ task.title }}"
-                                            title="Drag to reorder"
-                                        >
-                                            &#8942;&#8942;
-                                        </button>
-
-                                        <h4>{{ task.title }}</h4>
-
-                                    </div>
-
-                                    <p>Priority: {{ task.priority }}</p>
-                                    <p>Category: {{ task.category }}</p>
-                                    <p>{{ task.description }}</p>
-
-                                    <p>
-                                        Due Date:
-
-                                        {% if task.due_date %}
-                                            {{ task.due_date|date:"d-m-Y H:i" }}
-                                        {% else %}
-                                            Not set
-                                        {% endif %}
-                                    </p>
-
-                                    <p>
-                                        Status:
-
-                                        {% if task.status %}
-                                            Completed
-                                        {% else %}
-                                            Pending
-                                        {% endif %}
-                                    </p>
-
-                                    <p>Created: {{ task.created_at }}</p>
-
-                                    <a href="{% url 'edit_task' task.id %}">Edit</a>
-
-                                    <form method="POST" action="{% url 'delete_task' task.id %}">
-                                        {% csrf_token %}
-                                        <button type="submit">Delete</button>
-                                    </form>
-
-                                    <form method="POST" action="{% url 'toggle_task_status' task.id %}">
-                                        {% csrf_token %}
-
-                                        {% if task.status %}
-                                            <button type="submit">Mark as Pending</button>
-                                        {% else %}
-                                            <button type="submit">Mark as Completed</button>
-                                        {% endif %}
-
-                                    </form>
-
-                                </div>
-
-                            {% endfor %}
-
-                        </div>
-
-                        <!-- Pagination -->
-
-                        <div class="pagination">
-
-                            {% if tasks.has_previous %}
-
-                                <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
-                                    First
-                                </a>
-
-                                <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
-                                    Previous
-                                </a>
-
-                            {% endif %}
-
-                            <span>
-                                Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
-                            </span>
-
-                            {% if tasks.has_next %}
-
-                                <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
-                                    Next
-                                </a>
-
-                                <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort|default:'newest' }}&category={{ selected_category|default:'' }}&priority={{ selected_priority|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}">
-                                    Last
-                                </a>
-
-                            {% endif %}
-
-                        </div>
-
-                    {% else %}
-
-                        <p>No tasks available for the selected filters.</p>
-
-                    {% endif %}
-
+                    <div class="field">
+                        <label class="label" for="end_date">Due until</label>
+                        <input class="input" type="date" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
+                    </div>
                 </div>
-
+                <div class="filter-actions">
+                    <a class="btn btn-ghost btn-sm" href="{% url 'dashboard' %}">Clear all filters</a>
+                    <button type="submit" class="btn btn-primary btn-sm">{% icon 'check' 14 %}<span>Apply filters</span></button>
+                </div>
             </div>
-
-        </main>
-
-    </div>
-
-    <!-- Notification Popup -->
-
-    <div id="notification-popup" class="notification-popup" role="status" aria-live="polite">
-        <h4>New Notification</h4>
-        <p id="notification-popup-message"></p>
-        <a href="{% url 'notifications' %}">View Notifications</a>
-    </div>
-
-    <!-- JavaScript -->
-
-    <script>
-        // Dark and Light Theme Toggle
-
-        const themeToggle = document.getElementById('theme-toggle');
-
-        const savedTheme = localStorage.getItem('planit-theme');
-
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-theme');
-            themeToggle.textContent = 'Switch to Light Mode';
-        }
-
-        themeToggle.addEventListener('click', function () {
-
-            document.body.classList.toggle('dark-theme');
-
-            const isDarkMode = document.body.classList.contains('dark-theme');
-
-            if (isDarkMode) {
-                localStorage.setItem('planit-theme', 'dark');
-                themeToggle.textContent = 'Switch to Light Mode';
-            } else {
-                localStorage.setItem('planit-theme', 'light');
-                themeToggle.textContent = 'Switch to Dark Mode';
-            }
-
-        });
-
-        // Mobile sidebar toggle
-
-        const sidebar = document.getElementById('sidebar');
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-
-        mobileMenuButton.addEventListener('click', function () {
-
-            sidebar.classList.toggle('open');
-
-            const isOpen = sidebar.classList.contains('open');
-
-            mobileMenuButton.setAttribute('aria-expanded', isOpen);
-
-        });
-
-        // Drag and Drop Task Reordering
-
-        const taskList = document.getElementById('task-list');
-        const resetTaskOrderButton = document.getElementById('reset-task-order');
-        const dragStatus = document.getElementById('drag-status');
-
-        const taskOrderStorageKey = 'planit-task-order-{{ request.user.id }}';
-
-        let draggedTask = null;
-
-        function getTaskCards() {
-            return Array.from(
-                taskList.querySelectorAll('.task-card')
-            );
-        }
-
-        function getSavedTaskOrder() {
-
-            try {
-
-                const savedOrder = localStorage.getItem(taskOrderStorageKey);
-
-                return savedOrder ? JSON.parse(savedOrder) : [];
-
-            } catch (error) {
-
-                console.error('Unable to read saved task order:', error);
-
-                return [];
-
-            }
-
-        }
-
-        function saveTaskOrder() {
-
-            const currentOrder = getTaskCards().map(card => {
-                return card.dataset.taskId;
-            });
-
-            const savedOrder = getSavedTaskOrder();
-
-            const combinedOrder = [
-                ...currentOrder,
-                ...savedOrder.filter(id => !currentOrder.includes(id))
-            ];
-
-            try {
-
-                localStorage.setItem(
-                    taskOrderStorageKey,
-                    JSON.stringify(combinedOrder)
-                );
-
-                dragStatus.textContent = 'Task order saved in this browser.';
-
-            } catch (error) {
-
-                console.error('Unable to save task order:', error);
-
-                dragStatus.textContent = 'Unable to save task order.';
-
-            }
-
-        }
-
-        function restoreTaskOrder() {
-
-            if (!taskList) {
-                return;
-            }
-
-            const savedOrder = getSavedTaskOrder();
-
-            if (savedOrder.length === 0) {
-                return;
-            }
-
-            const cards = getTaskCards();
-
-            const orderMap = new Map(
-                savedOrder.map((id, index) => [id, index])
-            );
-
-            cards.sort((a, b) => {
-
-                const positionA = orderMap.has(a.dataset.taskId)
-                    ? orderMap.get(a.dataset.taskId)
-                    : Number.MAX_SAFE_INTEGER;
-
-                const positionB = orderMap.has(b.dataset.taskId)
-                    ? orderMap.get(b.dataset.taskId)
-                    : Number.MAX_SAFE_INTEGER;
-
-                return positionA - positionB;
-
-            });
-
-            cards.forEach(card => {
-                taskList.appendChild(card);
-            });
-
-        }
-
-        if (taskList) {
-
-            restoreTaskOrder();
-
-            getTaskCards().forEach(card => {
-
-                const dragHandle = card.querySelector('.drag-handle');
-
-                card.addEventListener('dragstart', function (event) {
-
-                    if (!card.dataset.dragAllowed) {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    draggedTask = card;
-
-                    card.classList.add('dragging');
-
-                    event.dataTransfer.effectAllowed = 'move';
-
-                    event.dataTransfer.setData(
-                        'text/plain',
-                        card.dataset.taskId
-                    );
-
-                });
-
-                card.addEventListener('dragend', function () {
-
-                    card.classList.remove('dragging');
-
-                    getTaskCards().forEach(item => {
-                        item.classList.remove('drag-over');
-                        delete item.dataset.dragAllowed;
-                    });
-
-                    draggedTask = null;
-
-                });
-
-                card.addEventListener('dragover', function (event) {
-
-                    if (!draggedTask || draggedTask === card) {
-                        return;
-                    }
-
-                    event.preventDefault();
-
-                    event.dataTransfer.dropEffect = 'move';
-
-                    card.classList.add('drag-over');
-
-                });
-
-                card.addEventListener('dragleave', function () {
-                    card.classList.remove('drag-over');
-                });
-
-                card.addEventListener('drop', function (event) {
-
-                    event.preventDefault();
-
-                    card.classList.remove('drag-over');
-
-                    if (!draggedTask || draggedTask === card) {
-                        return;
-                    }
-
-                    const rect = card.getBoundingClientRect();
-
-                    const dropAfter =
-                        event.clientY > rect.top + rect.height / 2;
-
-                    if (dropAfter) {
-                        card.after(draggedTask);
-                    } else {
-                        card.before(draggedTask);
-                    }
-
-                    saveTaskOrder();
-
-                });
-
-                dragHandle.addEventListener('mousedown', function () {
-                    card.dataset.dragAllowed = 'true';
-                });
-
-                dragHandle.addEventListener('touchstart', function () {
-                    dragStatus.textContent =
-                        'Use drag and drop with a mouse on this device.';
-                });
-
-                dragHandle.addEventListener('click', function () {
-                    dragStatus.textContent =
-                        'Hold the drag handle and move the task to reorder it.';
-                });
-
-            });
-
-            resetTaskOrderButton.addEventListener('click', function () {
-
-                localStorage.removeItem(taskOrderStorageKey);
-
-                dragStatus.textContent =
-                    'Custom task order cleared. Reloading the original order...';
-
-                window.location.reload();
-
-            });
-
-        } else {
-
-            resetTaskOrderButton.style.display = 'none';
-
-        }
-
-        // Real-time notifications
-
-        const notificationUpdatesUrl = "{% url 'notification_updates' %}";
-
-        const notificationCountElement = document.getElementById(
-            'unread-notification-count'
-        );
-
-        const notificationPopup = document.getElementById(
-            'notification-popup'
-        );
-
-        const notificationPopupMessage = document.getElementById(
-            'notification-popup-message'
-        );
-
-        let lastNotificationId = 0;
-        let notificationPopupTimeout = null;
-
-        async function checkNotifications() {
-
-            try {
-
-                const response = await fetch(
-                    notificationUpdatesUrl + '?last_id=' + lastNotificationId,
-                    {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    }
-                );
-
-                if (!response.ok) {
-                    return;
-                }
-
-                const data = await response.json();
-
-                notificationCountElement.textContent = data.unread_count;
-
-                if (data.notifications && data.notifications.length > 0) {
-
-                    data.notifications.forEach(notification => {
-
-                        lastNotificationId = Math.max(
-                            lastNotificationId,
-                            notification.id
-                        );
-
-                        notificationPopupMessage.textContent =
-                            notification.message;
-
-                        notificationPopup.classList.add('show');
-
-                        clearTimeout(notificationPopupTimeout);
-
-                        notificationPopupTimeout = setTimeout(() => {
-                            notificationPopup.classList.remove('show');
-                        }, 5000);
-
-                    });
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    'Unable to fetch notifications:',
-                    error
-                );
-
-            }
-
-        }
-
-        checkNotifications();
-
-        setInterval(checkNotifications, 10000);
-    </script>
-
-</body>
-
-</html>
+        </form>
+
+        {% if search_query or selected_category or selected_priority or start_date or end_date or selected_sort and selected_sort != 'newest' %}
+            <div class="filter-chips" aria-label="Active filters">
+                <span class="filter-chips-label">Active:</span>
+                {% if search_query %}<a class="chip" href="{% querystring search=None page=None %}#tasks" aria-label="Remove search filter">Search <b>“{{ search_query }}”</b>{% icon 'x' 12 %}</a>{% endif %}
+                {% if selected_category %}<a class="chip" href="{% querystring category=None page=None %}#tasks" aria-label="Remove category filter">Category <b>{{ selected_category }}</b>{% icon 'x' 12 %}</a>{% endif %}
+                {% if selected_priority %}<a class="chip" href="{% querystring priority=None page=None %}#tasks" aria-label="Remove priority filter">Priority <b>{{ selected_priority }}</b>{% icon 'x' 12 %}</a>{% endif %}
+                {% if start_date %}<a class="chip" href="{% querystring start_date=None page=None %}#tasks" aria-label="Remove start date filter">From <b>{{ start_date }}</b>{% icon 'x' 12 %}</a>{% endif %}
+                {% if end_date %}<a class="chip" href="{% querystring end_date=None page=None %}#tasks" aria-label="Remove end date filter">Until <b>{{ end_date }}</b>{% icon 'x' 12 %}</a>{% endif %}
+                {% if selected_sort and selected_sort != 'newest' %}<a class="chip" href="{% querystring sort=None page=None %}#tasks" aria-label="Reset sort order">Sorted by <b>{% if selected_sort == 'oldest' %}oldest{% elif selected_sort == 'priority' %}priority{% else %}due date{% endif %}</b>{% icon 'x' 12 %}</a>{% endif %}
+                <a class="chip-clear" href="{% url 'dashboard' %}">Clear all</a>
+            </div>
+        {% endif %}
+
+        <!-- Quick add -->
+        <form class="composer" method="POST" action="{% url 'create_task' %}" data-flash="Task created" data-flash-path="{% url 'dashboard' %}">
+            {% csrf_token %}
+            <div class="composer-main">
+                {% icon 'plus' 18 %}
+                <label class="sr-only" for="quick-task-title">Task title</label>
+                <input class="composer-input" id="quick-task-title" type="text" name="title" placeholder="Add a task… press Enter to save" maxlength="200" required autocomplete="off">
+            </div>
+            <div class="composer-options">
+                <label class="sr-only" for="quick-priority">Priority</label>
+                <select class="select" id="quick-priority" name="priority">
+                    <option value="Low">Low priority</option>
+                    <option value="Medium" selected>Medium priority</option>
+                    <option value="High">High priority</option>
+                </select>
+                <label class="sr-only" for="quick-category">Category</label>
+                <select class="select" id="quick-category" name="category">
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Study">Study</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Other" selected>Other</option>
+                </select>
+                <label class="sr-only" for="quick-due">Due date</label>
+                <input class="input" id="quick-due" type="datetime-local" name="due_date">
+                <div class="composer-submit">
+                    <button type="button" class="btn btn-ghost btn-sm" data-open-task-modal>More details</button>
+                    <button type="submit" class="btn btn-primary btn-sm"><span>Add task</span></button>
+                </div>
+            </div>
+        </form>
+
+        <p id="drag-status" class="drag-status" role="status" aria-live="polite"></p>
+
+        {% if tasks %}
+            <ul class="task-list" id="task-list" role="list" data-user-id="{{ request.user.id }}">
+                {% for task in tasks %}
+                    {% include "tasks/partials/task_row.html" %}
+                {% endfor %}
+            </ul>
+
+            {% if tasks.paginator.num_pages > 1 %}
+                <nav class="pagination" aria-label="Task pages">
+                    <p class="pagination-info">Showing <strong>{{ tasks.start_index }}–{{ tasks.end_index }}</strong> of <strong>{{ tasks.paginator.count }}</strong></p>
+                    <div class="pagination-pages">
+                        {% if tasks.has_previous %}
+                            <a class="page-link" href="{% querystring page=tasks.previous_page_number %}#tasks" aria-label="Previous page">{% icon 'chevron-left' 16 %}</a>
+                        {% else %}
+                            <span class="page-link is-disabled" aria-hidden="true">{% icon 'chevron-left' 16 %}</span>
+                        {% endif %}
+
+                        {% page_window tasks as pages %}
+                        {% for number in pages %}
+                            {% if number == tasks.paginator.ELLIPSIS %}
+                                <span class="page-ellipsis">…</span>
+                            {% elif number == tasks.number %}
+                                <span class="page-link is-current" aria-current="page">{{ number }}</span>
+                            {% else %}
+                                <a class="page-link" href="{% querystring page=number %}#tasks">{{ number }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if tasks.has_next %}
+                            <a class="page-link" href="{% querystring page=tasks.next_page_number %}#tasks" aria-label="Next page">{% icon 'chevron-right' 16 %}</a>
+                        {% else %}
+                            <span class="page-link is-disabled" aria-hidden="true">{% icon 'chevron-right' 16 %}</span>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+
+        {% elif total_tasks == 0 %}
+            <div class="empty-state">
+                {% include "tasks/partials/art.html" with art="tasks" %}
+                <h3 class="empty-title">Plan your first task</h3>
+                <p class="empty-text">Capture what’s on your mind, set a priority and a due date — PlanIt will keep track of the rest.</p>
+                <div class="empty-actions">
+                    <button type="button" class="btn btn-primary" data-open-task-modal>{% icon 'plus' 16 %}<span>Create a task</span></button>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                {% include "tasks/partials/art.html" with art="search" %}
+                <h3 class="empty-title">No tasks match these filters</h3>
+                <p class="empty-text">Try a different search term, or clear the filters to see your whole list.</p>
+                <div class="empty-actions">
+                    <a class="btn btn-secondary" href="{% url 'dashboard' %}">{% icon 'rotate' 15 %}<span>Clear filters</span></a>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Side widgets -->
+    <aside class="dashboard-aside" aria-label="Summary">
+        <section class="panel reveal" style="--i:6" aria-labelledby="progress-heading">
+            <header class="panel-header">
+                <h2 class="panel-title" id="progress-heading">{% icon 'trending-up' 16 %}Progress</h2>
+            </header>
+            <div class="panel-body" style="padding-top:0">
+                <div class="progress-summary">
+                    <div class="ring" role="img" aria-label="{{ completion }} percent of tasks completed">
+                        <svg viewBox="0 0 40 40">
+                            <circle class="ring-track" cx="20" cy="20" r="16"/>
+                            {% if completion != "0" %}<circle class="ring-value" cx="20" cy="20" r="16" pathLength="100" stroke-dasharray="{{ completion }} 100"/>{% endif %}
+                        </svg>
+                        <div class="ring-label"><strong>{{ completion }}%</strong><span>Done</span></div>
+                    </div>
+                    <ul class="legend">
+                        <li class="tone-success"><i class="swatch"></i>Completed<b>{{ completed_tasks }}</b></li>
+                        <li class="tone-warning"><i class="swatch"></i>Pending<b>{{ pending_tasks }}</b></li>
+                        <li class="tone-danger"><i class="swatch"></i>Overdue<b>{{ overdue_count }}</b></li>
+                    </ul>
+                </div>
+                {% if total_tasks %}
+                    <div class="stacked-bar" aria-hidden="true">
+                        <span class="tone-success" style="--value: {% widthratio completed_tasks total_tasks 100 %}%"></span>
+                        <span class="tone-warning" style="--value: {% widthratio pending_tasks total_tasks 100 %}%"></span>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="panel reveal" style="--i:7" id="overdue" aria-labelledby="overdue-heading">
+            <header class="panel-header">
+                <h2 class="panel-title" id="overdue-heading">{% icon 'alert-triangle' 16 %}Overdue</h2>
+                {% if overdue_count %}<span class="badge badge-danger">{{ overdue_count }}</span>{% endif %}
+            </header>
+            {% if overdue_count %}
+                <ul class="mini-list" role="list">
+                    {% for task in overdue_tasks|slice:":5" %}
+                        <li>
+                            <a class="mini-item priority-{{ task.priority|lower }}" href="{% url 'edit_task' task.id %}">
+                                <span class="bar" aria-hidden="true"></span>
+                                <span class="mini-item-body">
+                                    <span class="mini-item-title" style="display:block">{{ task.title }}</span>
+                                    <span class="mini-item-meta is-danger">Due {{ task.due_date|date:"M j, H:i" }} · {{ task.due_date|timesince }} ago</span>
+                                </span>
+                                {% icon 'chevron-right' 14 %}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% if overdue_count > 5 %}<span class="mini-more">+{{ overdue_count|add:"-5" }} more overdue</span>{% endif %}
+            {% else %}
+                <p class="mini-empty">{% icon 'check-circle' 16 %}No overdue tasks. Great job staying on top of things.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel reveal" style="--i:8" aria-labelledby="upcoming-heading">
+            <header class="panel-header">
+                <h2 class="panel-title" id="upcoming-heading">{% icon 'clock' 16 %}Next 24 hours</h2>
+                <a class="panel-link" href="{% url 'weekly_tasks' %}">Week {% icon 'arrow-right' 13 %}</a>
+            </header>
+            {% if upcoming_count %}
+                <ul class="mini-list" role="list">
+                    {% for task in upcoming_tasks %}
+                        <li>
+                            <a class="mini-item priority-{{ task.priority|lower }}" href="{% url 'edit_task' task.id %}">
+                                <span class="bar" aria-hidden="true"></span>
+                                <span class="mini-item-body">
+                                    <span class="mini-item-title" style="display:block">{{ task.title }}</span>
+                                    <span class="mini-item-meta">{{ task.due_date|date:"D H:i" }} · in {{ task.due_date|timeuntil }}</span>
+                                </span>
+                                {% icon 'chevron-right' 14 %}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="mini-empty">{% icon 'calendar' 16 %}Nothing due in the next 24 hours.</p>
+            {% endif %}
+        </section>
+    </aside>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'tasks/js/dashboard.js' %}" defer></script>
+{% endblock %}

@@ -1,17 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Email Verification</title>
-</head>
-<body>
+{% extends "tasks/layouts/auth.html" %}
+{% load planit_ui %}
 
-    <h2>Verify Your Email</h2>
+{% block title %}Verify your email{% endblock %}
 
-    <p>Your account has been created successfully.</p>
-    <p>We have sent a verification link to your email address.</p>
-    <p>Please check your inbox and click the verification link to activate your account.</p>
+{% block auth_content %}
+<div class="status-card">
+    {% include "tasks/partials/art.html" with art="mail" %}
+    <h1 class="auth-title">Check your inbox</h1>
+    <p class="auth-subtitle">Your account has been created. We’ve sent a verification link to your email address — click it to activate your account.</p>
 
-    <a href="{% url 'login' %}">Go to Login</a>
+    <div class="status-note">
+        {% icon 'info' 16 %}
+        <span>Can’t find the email? Check your spam or promotions folder. The link expires after a while for your security.</span>
+    </div>
 
-</body>
-</html>
+    <a class="btn btn-primary btn-lg btn-block" href="{% url 'login' %}"><span>Go to login</span>{% icon 'arrow-right' 16 %}</a>
+</div>
+{% endblock %}

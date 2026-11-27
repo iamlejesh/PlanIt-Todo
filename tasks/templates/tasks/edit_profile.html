@@ -1,121 +1,79 @@
+{% extends "tasks/layouts/app.html" %}
+{% load planit_ui %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}Edit profile{% endblock %}
+{% block breadcrumb %}<span class="crumb-current">Profile</span>{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-        }
-
-        .profile-container {
-            width: 100%;
-            max-width: 450px;
-            padding: 30px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 18px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #1d4ed8;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #2563eb;
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-            .profile-container {
-                padding: 22px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="profile-container">
-
-        <h2>Edit Profile</h2>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            <label>First Name:</label>
-            <input type="text" name="first_name"
-                   value="{{ request.user.first_name }}">
-
-            <label>Last Name:</label>
-            <input type="text" name="last_name"
-                   value="{{ request.user.last_name }}">
-
-            <label>Email:</label>
-            <input type="email" name="email"
-                   value="{{ request.user.email }}">
-
-            <button type="submit">Save Changes</button>
-
-        </form>
-
-        <a class="back-link" href="{% url 'dashboard' %}">
-            Back to Dashboard
-        </a>
-
+{% block content %}
+<header class="page-header reveal">
+    <div class="page-header-main">
+        <p class="eyebrow">Account</p>
+        <h1 class="page-title">Edit profile</h1>
+        <p class="page-subtitle">Manage your personal details and how you appear in PlanIt.</p>
     </div>
+</header>
 
-</body>
-</html>
+<div class="profile-layout">
+    <aside class="panel profile-card reveal" style="--i:1" aria-label="Profile summary">
+        <div class="profile-cover" aria-hidden="true"></div>
+        <span class="avatar avatar-xl">{{ request.user|initials }}</span>
+        <p class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</p>
+        <p class="profile-handle">@{{ request.user.username }}</p>
+
+        <dl class="details-list">
+            <div><dt>{% icon 'mail' 14 %}Email</dt><dd style="overflow-wrap:anywhere">{{ request.user.email|default:"—" }}</dd></div>
+            <div><dt>{% icon 'calendar' 14 %}Member since</dt><dd>{{ request.user.date_joined|date:"M Y" }}</dd></div>
+            {% if request.user.last_login %}<div><dt>{% icon 'history' 14 %}Last login</dt><dd>{{ request.user.last_login|date:"M j, H:i" }}</dd></div>{% endif %}
+        </dl>
+
+        <div class="profile-links">
+            <a class="dropdown-item" href="{% url 'change_password' %}">{% icon 'lock' 16 %}Change password</a>
+            <a class="dropdown-item" href="{% url 'notification_settings' %}">{% icon 'settings' 16 %}Notification settings</a>
+        </div>
+    </aside>
+
+    <form method="POST" class="panel reveal" style="--i:2" data-flash="Profile updated" data-flash-path="{% url 'dashboard' %}">
+        {% csrf_token %}
+        <header class="panel-header bordered">
+            <div>
+                <h2 class="panel-title">{% icon 'user' 16 %}Personal information</h2>
+                <p class="panel-subtitle">This information is used across your workspace and emails.</p>
+            </div>
+        </header>
+        <div class="panel-body">
+            <div class="field-row">
+                <div class="field">
+                    <label class="label" for="profile-first">First name</label>
+                    <input class="input" id="profile-first" type="text" name="first_name" value="{{ request.user.first_name }}" autocomplete="given-name" maxlength="150">
+                </div>
+                <div class="field">
+                    <label class="label" for="profile-last">Last name</label>
+                    <input class="input" id="profile-last" type="text" name="last_name" value="{{ request.user.last_name }}" autocomplete="family-name" maxlength="150">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label" for="profile-email">Email address</label>
+                <div class="input-group">
+                    <span class="input-icon">{% icon 'mail' 16 %}</span>
+                    <input class="input" id="profile-email" type="email" name="email" value="{{ request.user.email }}" autocomplete="email">
+                </div>
+                <p class="hint">Task reminders and password reset links are sent here.</p>
+            </div>
+
+            <div class="field">
+                <label class="label" for="profile-username">Username</label>
+                <div class="input-group">
+                    <span class="input-icon">{% icon 'at-sign' 16 %}</span>
+                    <input class="input" id="profile-username" type="text" value="{{ request.user.username }}" readonly aria-describedby="username-hint">
+                </div>
+                <p class="hint" id="username-hint">Your username is used to log in and can’t be changed here.</p>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <a class="btn btn-ghost" href="{% url 'dashboard' %}">Cancel</a>
+            <button type="submit" class="btn btn-primary">{% icon 'check' 15 %}<span>Save changes</span></button>
+        </div>
+    </form>
+</div>
+{% endblock %}

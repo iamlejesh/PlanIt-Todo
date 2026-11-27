@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Email Verified</title>
-</head>
-<body>
+{% extends "tasks/layouts/auth.html" %}
+{% load planit_ui %}
 
-    <h2>Email Verified Successfully!</h2>
+{% block title %}Email verified{% endblock %}
 
-    <p>Your email address has been verified.</p>
-    <p>Your PlanIt-Todo account is now active.</p>
-
-    <a href="{% url 'login' %}">Login to Your Account</a>
-
-</body>
-</html>
+{% block auth_content %}
+<div class="status-card">
+    {% include "tasks/partials/art.html" with art="success" %}
+    <h1 class="auth-title">Email verified</h1>
+    <p class="auth-subtitle">Your email address has been confirmed and your PlanIt account is now active.</p>
+    <a class="btn btn-primary btn-lg btn-block" href="{% url 'login' %}"><span>Log in to your account</span>{% icon 'arrow-right' 16 %}</a>
+</div>
+{% endblock %}

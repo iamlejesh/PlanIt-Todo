@@ -1,0 +1,56 @@
+{% load planit_ui %}
+<dialog class="modal" id="task-modal" aria-labelledby="task-modal-title">
+    <form method="POST" action="{% url 'create_task' %}" class="modal-form" data-flash="Task created" data-flash-path="{% url 'dashboard' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+            <span class="modal-eyebrow">{% icon 'sparkles' 14 %} <span id="task-modal-title">New task</span></span>
+            <button type="button" class="icon-btn" data-modal-close aria-label="Close">{% icon 'x' 16 %}</button>
+        </div>
+
+        <div class="modal-body">
+            <label class="sr-only" for="modal-task-title">Task title</label>
+            <input class="title-input" id="modal-task-title" type="text" name="title" placeholder="What needs to be done?" maxlength="200" required autocomplete="off">
+
+            <label class="sr-only" for="modal-task-description">Description</label>
+            <textarea class="desc-input" id="modal-task-description" name="description" rows="2" placeholder="Add details, notes or links…"></textarea>
+
+            <div class="modal-fields">
+                <fieldset class="field" style="border:0;margin:0;padding:0">
+                    <legend class="label" style="margin-bottom:6px">Priority</legend>
+                    <div class="choice-group">
+                        <label class="choice"><input type="radio" name="priority" value="Low"><span><span class="priority priority-low">{% icon 'flag' 13 %}</span>Low</span></label>
+                        <label class="choice"><input type="radio" name="priority" value="Medium" checked><span><span class="priority priority-medium">{% icon 'flag' 13 %}</span>Medium</span></label>
+                        <label class="choice"><input type="radio" name="priority" value="High"><span><span class="priority priority-high">{% icon 'flag' 13 %}</span>High</span></label>
+                    </div>
+                </fieldset>
+
+                <fieldset class="field" style="border:0;margin:0;padding:0">
+                    <legend class="label" style="margin-bottom:6px">Category</legend>
+                    <div class="choice-group">
+                        <label class="choice"><input type="radio" name="category" value="Work"><span><i class="dot" style="--dot: var(--category-work)"></i>Work</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Personal"><span><i class="dot" style="--dot: var(--category-personal)"></i>Personal</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Study"><span><i class="dot" style="--dot: var(--category-study)"></i>Study</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Shopping"><span><i class="dot" style="--dot: var(--category-shopping)"></i>Shopping</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Other" checked><span><i class="dot" style="--dot: var(--category-other)"></i>Other</span></label>
+                    </div>
+                </fieldset>
+
+                <div class="field">
+                    <label class="label" for="modal-task-due">Due date <span class="optional">Optional</span></label>
+                    <div class="due-row">
+                        <input class="input" id="modal-task-due" type="datetime-local" name="due_date" data-due-input>
+                        <button type="button" class="preset-btn" data-due-preset="today">Today</button>
+                        <button type="button" class="preset-btn" data-due-preset="tomorrow">Tomorrow</button>
+                        <button type="button" class="preset-btn" data-due-preset="week">Next week</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <span class="hint"><kbd>Ctrl</kbd><kbd>Enter</kbd> to create</span>
+            <button type="button" class="btn btn-ghost" data-modal-close>Cancel</button>
+            <button type="submit" class="btn btn-primary"><span>Create task</span></button>
+        </div>
+    </form>
+</dialog>

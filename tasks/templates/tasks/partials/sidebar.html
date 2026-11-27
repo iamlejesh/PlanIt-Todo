@@ -1,0 +1,74 @@
+{% load planit_ui %}
+{% with current=request.resolver_match.url_name %}
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+    <div class="sidebar-header">
+        <a class="brand" href="{% url 'dashboard' %}" aria-label="PlanIt home">
+            {% include "tasks/partials/logo.html" %}
+            <span class="brand-name">PlanIt</span>
+        </a>
+        <button type="button" class="icon-btn sidebar-collapse" data-sidebar-toggle aria-label="Collapse sidebar" data-tooltip="Toggle sidebar">
+            {% icon 'panel-left' 18 %}
+        </button>
+    </div>
+
+    <button type="button" class="btn btn-primary sidebar-new-task" data-open-task-modal data-tooltip="New task" aria-label="New task">
+        {% icon 'plus' 16 %}
+        <span class="sidebar-label">New task</span>
+        <kbd class="sidebar-label">N</kbd>
+    </button>
+
+    <nav class="sidebar-nav">
+        <div class="nav-group">
+            <p class="nav-group-label">Workspace</p>
+            <a href="{% url 'dashboard' %}" class="nav-item{% if current == 'dashboard' or current == 'edit_task' %} is-active{% endif %}" {% if current == 'dashboard' %}aria-current="page"{% endif %} data-tooltip="Dashboard">
+                {% icon 'layout-dashboard' 18 %}<span class="sidebar-label">Dashboard</span>
+            </a>
+            <a href="{% url 'daily_tasks' %}" class="nav-item{% if current == 'daily_tasks' %} is-active{% endif %}" {% if current == 'daily_tasks' %}aria-current="page"{% endif %} data-tooltip="Daily tasks">
+                {% icon 'sun' 18 %}<span class="sidebar-label">Daily tasks</span>
+            </a>
+            <a href="{% url 'weekly_tasks' %}" class="nav-item{% if current == 'weekly_tasks' %} is-active{% endif %}" {% if current == 'weekly_tasks' %}aria-current="page"{% endif %} data-tooltip="Weekly tasks">
+                {% icon 'calendar-range' 18 %}<span class="sidebar-label">Weekly tasks</span>
+            </a>
+            <a href="{% url 'calendar' %}" class="nav-item{% if current == 'calendar' %} is-active{% endif %}" {% if current == 'calendar' %}aria-current="page"{% endif %} data-tooltip="Calendar">
+                {% icon 'calendar' 18 %}<span class="sidebar-label">Calendar</span>
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <p class="nav-group-label">Inbox</p>
+            <a href="{% url 'notifications' %}" class="nav-item{% if current == 'notifications' %} is-active{% endif %}" {% if current == 'notifications' %}aria-current="page"{% endif %} data-tooltip="Notifications">
+                {% icon 'bell' 18 %}<span class="sidebar-label">Notifications</span>
+                <span class="count-badge" data-unread-count {% if not notif.unread %}hidden{% endif %}>{{ notif.unread }}</span>
+                <span class="count-badge nav-dot" data-unread-dot {% if not notif.unread %}hidden{% endif %}></span>
+            </a>
+            <a href="{% url 'notification_settings' %}" class="nav-item{% if current == 'notification_settings' %} is-active{% endif %}" {% if current == 'notification_settings' %}aria-current="page"{% endif %} data-tooltip="Notification settings">
+                {% icon 'settings' 18 %}<span class="sidebar-label">Notification settings</span>
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <p class="nav-group-label">Account</p>
+            <a href="{% url 'edit_profile' %}" class="nav-item{% if current == 'edit_profile' %} is-active{% endif %}" {% if current == 'edit_profile' %}aria-current="page"{% endif %} data-tooltip="Edit profile">
+                {% icon 'user' 18 %}<span class="sidebar-label">Edit profile</span>
+            </a>
+            <a href="{% url 'change_password' %}" class="nav-item{% if current == 'change_password' %} is-active{% endif %}" {% if current == 'change_password' %}aria-current="page"{% endif %} data-tooltip="Change password">
+                {% icon 'lock' 18 %}<span class="sidebar-label">Change password</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <a href="{% url 'edit_profile' %}" class="avatar avatar-sm" data-tooltip="{{ request.user|display_name }}" aria-label="Your profile" style="text-decoration:none">{{ request.user|initials }}</a>
+            <div class="sidebar-user-info">
+                <p class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</p>
+                <p class="sidebar-user-email">{{ request.user.email|default:request.user.username }}</p>
+            </div>
+            <form method="POST" action="{% url 'logout' %}" class="sidebar-logout">
+                {% csrf_token %}
+                <button type="submit" class="icon-btn" aria-label="Log out" data-tooltip="Log out">{% icon 'log-out' 16 %}</button>
+            </form>
+        </div>
+    </div>
+</aside>
+{% endwith %}

@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "planit-preview",
+      "runtimeExecutable": "D:\\Projects\\PlanIt-Todo\\venv\\Scripts\\python.exe",
+      "runtimeArgs": ["manage.py", "runserver", "127.0.0.1:8765", "--settings=planit_preview_settings"],
+      "env": {
+        "PYTHONPATH": "C:\\Users\\MA1138~1\\AppData\\Local\\Temp\\claude\\16cfeaecca316d93\\d937a164-8f56-4b22-9639-979f6630e9f9\\scratchpad\\devsettings"
+      },
+      "port": 8765
+    }
+  ]
+}

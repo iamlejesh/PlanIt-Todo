@@ -1,0 +1,53 @@
+{% extends "tasks/base.html" %}
+{% load static planit_ui %}
+
+{% block styles %}<link rel="stylesheet" href="{% static 'tasks/css/auth.css' %}">{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{% block body %}
+<div class="auth-shell">
+    <aside class="auth-aside" aria-hidden="true">
+        <a class="brand" href="{% url 'login' %}" tabindex="-1">
+            {% include "tasks/partials/logo.html" %}
+            <span class="brand-name">PlanIt</span>
+        </a>
+
+        <div class="auth-aside-copy">
+            <span class="auth-kicker">{% icon 'sparkles' 13 %} Your calm productivity workspace</span>
+            <h2 class="auth-headline">Plan with clarity.<br><span>Finish with focus.</span></h2>
+            <p class="auth-lede">Capture tasks, set priorities and deadlines, and see your day, week and month in one organized place.</p>
+        </div>
+
+        <img class="auth-illustration" src="{% static 'tasks/img/auth-preview.svg' %}" alt="" width="520" height="360">
+
+        <ul class="auth-features">
+            <li>{% icon 'bell-ring' 15 %} Smart reminders</li>
+            <li>{% icon 'calendar-range' 15 %} Daily, weekly &amp; calendar views</li>
+            <li>{% icon 'shield-check' 15 %} Secure by default</li>
+        </ul>
+    </aside>
+
+    <main class="auth-main" id="main">
+        <div class="auth-topbar">
+            <a class="brand" href="{% url 'login' %}">
+                {% include "tasks/partials/logo.html" %}
+                <span class="brand-name">PlanIt</span>
+            </a>
+            <div class="auth-topbar-actions">
+                {% block auth_topbar %}{% endblock %}
+                <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+                    {% icon 'moon' 18 'icon-moon' %}{% icon 'sun' 18 'icon-sun' %}
+                </button>
+            </div>
+        </div>
+
+        <div class="auth-content">
+            <div class="auth-card {% block card_class %}{% endblock %}">
+                {% block auth_content %}{% endblock %}
+            </div>
+        </div>
+
+        <p class="auth-legal">© {% now "Y" %} PlanIt · Plan smarter, every day.</p>
+    </main>
+</div>
+{% endblock %}

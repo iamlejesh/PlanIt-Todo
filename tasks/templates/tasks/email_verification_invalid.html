@@ -1,15 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Verification Failed</title>
-</head>
-<body>
+{% extends "tasks/layouts/auth.html" %}
+{% load planit_ui %}
 
-    <h2>Email Verification Failed</h2>
+{% block title %}Verification failed{% endblock %}
 
-    <p>This verification link is invalid or has expired.</p>
-
-    <a href="{% url 'register' %}">Register Again</a>
-
-</body>
-</html>
+{% block auth_content %}
+<div class="status-card">
+    {% include "tasks/partials/art.html" with art="error" %}
+    <h1 class="auth-title">Link invalid or expired</h1>
+    <p class="auth-subtitle">This verification link is no longer valid. It may have already been used or expired. Please register again to receive a new link.</p>
+    <a class="btn btn-primary btn-lg btn-block" href="{% url 'register' %}"><span>Register again</span>{% icon 'arrow-right' 16 %}</a>
+    <p class="auth-switch">Already verified? <a href="{% url 'login' %}">Log in</a></p>
+</div>
+{% endblock %}
