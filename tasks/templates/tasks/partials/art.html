@@ -1,0 +1,101 @@
+{% comment %}
+Theme-aware spot illustrations. They use the design tokens so they adapt
+to light and dark mode. Usage: {% include "tasks/partials/art.html" with art="tasks" %}
+{% endcomment %}
+{% if art == "tasks" %}
+<svg class="{{ css|default:'empty-illustration' }}" width="180" height="120" viewBox="0 0 180 120" fill="none" aria-hidden="true">
+    <rect x="30" y="18" width="120" height="88" rx="12" fill="var(--surface)" stroke="var(--border)"/>
+    <rect x="44" y="34" width="10" height="10" rx="5" fill="var(--success)"/>
+    <path d="m46.5 39 1.6 1.6 3-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="62" y="35" width="56" height="7" rx="3.5" fill="var(--border-strong)"/>
+    <rect x="44" y="54" width="10" height="10" rx="5" stroke="var(--priority-high)" stroke-width="1.5"/>
+    <rect x="62" y="55" width="72" height="7" rx="3.5" fill="var(--border)"/>
+    <rect x="44" y="74" width="10" height="10" rx="5" stroke="var(--priority-medium)" stroke-width="1.5"/>
+    <rect x="62" y="75" width="44" height="7" rx="3.5" fill="var(--border)"/>
+    <circle cx="146" cy="24" r="16" fill="var(--accent)"/>
+    <path d="M146 17v14M139 24h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="24" cy="92" r="4" fill="var(--accent-soft-strong)"/>
+    <circle cx="160" cy="98" r="3" fill="var(--category-personal)" opacity=".5"/>
+</svg>
+{% elif art == "search" %}
+<svg class="{{ css|default:'empty-illustration' }}" width="180" height="120" viewBox="0 0 180 120" fill="none" aria-hidden="true">
+    <rect x="28" y="24" width="104" height="76" rx="12" fill="var(--surface)" stroke="var(--border)"/>
+    <rect x="42" y="40" width="60" height="7" rx="3.5" fill="var(--border)"/>
+    <rect x="42" y="56" width="76" height="7" rx="3.5" fill="var(--border)"/>
+    <rect x="42" y="72" width="40" height="7" rx="3.5" fill="var(--border)"/>
+    <circle cx="122" cy="74" r="22" fill="var(--surface)" stroke="var(--accent)" stroke-width="4"/>
+    <path d="m138 90 14 14" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+    <path d="m115 67 14 14M129 67l-14 14" stroke="var(--text-tertiary)" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
+{% elif art == "inbox" %}
+<svg class="{{ css|default:'empty-illustration' }}" width="180" height="120" viewBox="0 0 180 120" fill="none" aria-hidden="true">
+    <path d="M40 62 54 30a8 8 0 0 1 7.3-4.8h57.4A8 8 0 0 1 126 30l14 32v30a8 8 0 0 1-8 8H48a8 8 0 0 1-8-8z" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="1.5"/>
+    <path d="M40 62h26l6 10h36l6-10h26" stroke="var(--border-strong)" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="132" cy="28" r="15" fill="var(--success)"/>
+    <path d="m125.5 28 4.5 4.5 8-8.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M30 40h8M34 36v8" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" opacity=".6"/>
+    <circle cx="152" cy="74" r="3" fill="var(--accent-soft-strong)"/>
+</svg>
+{% elif art == "calendar" %}
+<svg class="{{ css|default:'empty-illustration' }}" width="180" height="120" viewBox="0 0 180 120" fill="none" aria-hidden="true">
+    <rect x="40" y="22" width="100" height="84" rx="12" fill="var(--surface)" stroke="var(--border)"/>
+    <path d="M40 34a12 12 0 0 1 12-12h76a12 12 0 0 1 12 12v12H40z" fill="var(--accent)"/>
+    <path d="M66 14v14M114 14v14" stroke="var(--text-tertiary)" stroke-width="4" stroke-linecap="round"/>
+    <g fill="var(--border)">
+        <rect x="54" y="56" width="14" height="10" rx="3"/><rect x="74" y="56" width="14" height="10" rx="3"/><rect x="94" y="56" width="14" height="10" rx="3"/><rect x="114" y="56" width="14" height="10" rx="3"/>
+        <rect x="54" y="74" width="14" height="10" rx="3"/><rect x="94" y="74" width="14" height="10" rx="3"/><rect x="114" y="74" width="14" height="10" rx="3"/>
+    </g>
+    <rect x="74" y="74" width="14" height="10" rx="3" fill="var(--accent)"/>
+    <circle cx="148" cy="96" r="14" fill="var(--surface)" stroke="var(--success)" stroke-width="2"/>
+    <path d="m142 96 4 4 7-7" stroke="var(--success)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+{% elif art == "welcome" %}
+<svg class="{{ css|default:'welcome-art' }}" width="168" height="120" viewBox="0 0 168 120" fill="none" aria-hidden="true">
+    <rect x="22" y="30" width="96" height="70" rx="12" fill="var(--surface)" stroke="var(--border)"/>
+    <rect x="34" y="44" width="8" height="8" rx="4" fill="var(--success)"/>
+    <rect x="48" y="45" width="44" height="6" rx="3" fill="var(--border-strong)"/>
+    <rect x="34" y="60" width="8" height="8" rx="4" stroke="var(--priority-medium)" stroke-width="1.5"/>
+    <rect x="48" y="61" width="58" height="6" rx="3" fill="var(--border)"/>
+    <rect x="34" y="76" width="8" height="8" rx="4" stroke="var(--priority-low)" stroke-width="1.5"/>
+    <rect x="48" y="77" width="36" height="6" rx="3" fill="var(--border)"/>
+    <circle cx="124" cy="40" r="26" fill="var(--surface)" stroke="var(--border)"/>
+    <circle cx="124" cy="40" r="17" stroke="var(--bg-subtle)" stroke-width="5"/>
+    <circle cx="124" cy="40" r="17" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="72 107" transform="rotate(-90 124 40)"/>
+    <path d="M148 86l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="var(--accent)" opacity=".8"/>
+    <circle cx="12" cy="64" r="3" fill="var(--category-personal)" opacity=".5"/>
+</svg>
+{% elif art == "mail" %}
+<svg class="status-art" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <circle cx="66" cy="56" r="48" fill="var(--accent-soft)"/>
+    <rect x="30" y="34" width="72" height="50" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+    <path d="m32 38 30.5 22a6 6 0 0 0 7 0L100 38" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="100" cy="34" r="12" fill="var(--accent)"/>
+    <path d="M100 28v7" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="100" cy="39.5" r="1.3" fill="#fff"/>
+    <path d="M14 30l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="var(--accent)" opacity=".5"/>
+</svg>
+{% elif art == "success" %}
+<svg class="status-art" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <circle cx="66" cy="56" r="48" fill="var(--success-soft)"/>
+    <circle cx="66" cy="56" r="30" fill="var(--success)"/>
+    <path d="m53 56 9 9 18-18" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M112 22l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="var(--success)" opacity=".55"/>
+    <circle cx="18" cy="84" r="4" fill="var(--success)" opacity=".4"/>
+    <circle cx="24" cy="24" r="3" fill="var(--accent)" opacity=".4"/>
+</svg>
+{% elif art == "error" %}
+<svg class="status-art" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <circle cx="66" cy="56" r="48" fill="var(--danger-soft)"/>
+    <path d="M66 22 98 80H34z" fill="var(--surface)" stroke="var(--danger)" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M66 44v16" stroke="var(--danger)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="66" cy="69" r="2.6" fill="var(--danger)"/>
+</svg>
+{% elif art == "lock" %}
+<svg class="status-art" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <circle cx="66" cy="56" r="48" fill="var(--accent-soft)"/>
+    <rect x="40" y="48" width="52" height="40" rx="9" fill="var(--accent)"/>
+    <path d="M50 48V38a16 16 0 0 1 32 0v10" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="66" cy="66" r="5" fill="#fff"/>
+    <path d="M66 70v7" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M110 26l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="var(--accent)" opacity=".5"/>
+</svg>
+{% endif %}

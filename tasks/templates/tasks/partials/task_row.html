@@ -1,0 +1,47 @@
+{% load planit_ui %}
+{% with state=task|due_state priority=task.priority|lower %}
+<li class="task-row{% if task.status %} is-done{% endif %}" draggable="true" data-task-id="{{ task.id }}" data-priority="{{ priority }}" style="--i: {{ forloop.counter0 }}">
+    <button type="button" class="drag-handle" aria-label="Reorder {{ task.title }}. Use arrow keys to move." title="Drag to reorder">
+        {% icon 'grip' 14 %}
+    </button>
+
+    <form method="POST" action="{% url 'toggle_task_status' task.id %}" class="task-check-form" data-async data-flash="{% if task.status %}Task marked as pending{% else %}Task completed — nice work!{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="task-check" aria-pressed="{{ task.status|yesno:'true,false' }}" aria-label="{% if task.status %}Mark {{ task.title }} as pending{% else %}Mark {{ task.title }} as completed{% endif %}" title="{% if task.status %}Mark as pending{% else %}Mark as completed{% endif %}">
+            {% icon 'check' 12 %}
+        </button>
+    </form>
+
+    <div class="task-body">
+        <a class="task-title" href="{% url 'edit_task' task.id %}">{{ task.title }}</a>
+        {% if task.description %}<p class="task-desc">{{ task.description }}</p>{% endif %}
+
+        <div class="task-meta">
+            <span class="priority priority-{{ priority }}" title="Priority">{% icon 'flag' 12 %}{{ task.priority }}</span>
+            <span class="category category-{{ task.category|lower }}" title="Category"><i class="dot"></i>{{ task.category }}</span>
+            {% if task.due_date %}
+                <span class="due due-{{ state }}" title="Due {{ task.due_date|date:'l, F j, Y \a\t H:i' }}">
+                    {% if state == 'overdue' %}{% icon 'alert-circle' 12 %}Overdue · {{ task.due_date|date:"M j, H:i" }}
+                    {% elif state == 'today' %}{% icon 'clock' 12 %}Today, {{ task.due_date|date:"H:i" }}
+                    {% elif state == 'tomorrow' %}{% icon 'calendar' 12 %}Tomorrow, {{ task.due_date|date:"H:i" }}
+                    {% elif state == 'week' %}{% icon 'calendar' 12 %}{{ task.due_date|date:"l, H:i" }}
+                    {% else %}{% icon 'calendar' 12 %}{{ task.due_date|date:"M j, Y · H:i" }}{% endif %}
+                </span>
+            {% else %}
+                <span class="due">{% icon 'calendar' 12 %}No due date</span>
+            {% endif %}
+            <span class="task-created" title="Created {{ task.created_at|date:'M j, Y H:i' }}">Created {{ task.created_at|date:"M j" }}</span>
+        </div>
+    </div>
+
+    <div class="task-actions">
+        <a class="icon-btn" href="{% url 'edit_task' task.id %}" aria-label="Edit {{ task.title }}" data-tooltip="Edit">{% icon 'pencil' 15 %}</a>
+        <form method="POST" action="{% url 'delete_task' task.id %}" data-async data-flash="Task deleted"
+              data-confirm="“{{ task.title }}” will be permanently deleted. This can’t be undone."
+              data-confirm-title="Delete this task?" data-confirm-label="Delete task">
+            {% csrf_token %}
+            <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete {{ task.title }}" data-tooltip="Delete">{% icon 'trash' 15 %}</button>
+        </form>
+    </div>
+</li>
+{% endwith %}

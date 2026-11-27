@@ -1,0 +1,97 @@
+{% extends "tasks/base.html" %}
+{% load static planit_ui %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'tasks/css/views.css' %}">
+    {% block page_styles %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+{% notification_summary as notif %}
+{% with current=request.resolver_match.url_name %}
+<div class="app-shell" id="app-shell"
+     data-notifications-url="{% url 'notification_updates' %}"
+     data-notifications-page="{% url 'notifications' %}"
+     data-last-notification="{{ notif.latest_id }}">
+
+    {% include "tasks/partials/sidebar.html" %}
+    <div class="app-backdrop" data-nav-close aria-hidden="true"></div>
+
+    <div class="app-main">
+        <header class="topbar">
+            <button type="button" class="icon-btn topbar-menu" data-nav-open aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+                {% icon 'menu' 20 %}
+            </button>
+
+            <nav class="topbar-title" aria-label="Breadcrumb">
+                {% block breadcrumb %}<span class="crumb-current">PlanIt</span>{% endblock %}
+            </nav>
+
+            {% block topbar_search %}
+            <form class="topbar-search input-group" method="GET" action="{% url 'dashboard' %}" role="search">
+                <span class="input-icon">{% icon 'search' 15 %}</span>
+                <input class="input" type="search" name="search" placeholder="Search tasks…" aria-label="Search tasks" data-search-input autocomplete="off">
+                <kbd>/</kbd>
+            </form>
+            {% endblock %}
+
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode" data-tooltip="Toggle theme">
+                    {% icon 'moon' 18 'icon-moon' %}{% icon 'sun' 18 'icon-sun' %}
+                </button>
+
+                <a href="{% url 'notifications' %}" class="icon-btn bell" data-bell aria-label="Notifications{% if notif.unread %} ({{ notif.unread }} unread){% endif %}" data-tooltip="Notifications">
+                    {% icon 'bell' 18 %}
+                    <span class="count-badge" data-unread-count {% if not notif.unread %}hidden{% endif %}>{{ notif.unread }}</span>
+                </a>
+
+                <span class="topbar-divider" aria-hidden="true"></span>
+
+                <div class="dropdown" data-dropdown>
+                    <button type="button" class="avatar-btn" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account menu">
+                        <span class="avatar avatar-sm">{{ request.user|initials }}</span>
+                    </button>
+                    <div class="dropdown-menu" role="menu" data-dropdown-menu>
+                        <div class="dropdown-header">
+                            <span class="avatar">{{ request.user|initials }}</span>
+                            <div class="dropdown-header-text">
+                                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                                <span>{{ request.user.email|default:request.user.username }}</span>
+                            </div>
+                        </div>
+                        <a class="dropdown-item" role="menuitem" href="{% url 'edit_profile' %}">{% icon 'user' 16 %} Edit profile</a>
+                        <a class="dropdown-item" role="menuitem" href="{% url 'change_password' %}">{% icon 'lock' 16 %} Change password</a>
+                        <a class="dropdown-item" role="menuitem" href="{% url 'notification_settings' %}">{% icon 'settings' 16 %} Notification settings</a>
+                        <div class="dropdown-sep" role="separator"></div>
+                        <button type="button" class="dropdown-item theme-toggle" role="menuitem" data-theme-toggle>
+                            {% icon 'moon' 16 'icon-moon' %}{% icon 'sun' 16 'icon-sun' %}
+                            <span data-theme-label>Dark mode</span>
+                        </button>
+                        <div class="dropdown-sep" role="separator"></div>
+                        <form method="POST" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item is-danger" role="menuitem">{% icon 'log-out' 16 %} Log out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="page {% block page_class %}{% endblock %}" id="main" tabindex="-1">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Quick navigation">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item{% if current == 'dashboard' %} is-active{% endif %}">{% icon 'layout-dashboard' 20 %}<span>Home</span></a>
+        <a href="{% url 'daily_tasks' %}" class="mobile-nav-item{% if current == 'daily_tasks' %} is-active{% endif %}">{% icon 'sun' 20 %}<span>Today</span></a>
+        <button type="button" class="mobile-nav-add" data-open-task-modal aria-label="New task">{% icon 'plus' 22 %}</button>
+        <a href="{% url 'weekly_tasks' %}" class="mobile-nav-item{% if current == 'weekly_tasks' %} is-active{% endif %}">{% icon 'calendar-range' 20 %}<span>Week</span></a>
+        <a href="{% url 'calendar' %}" class="mobile-nav-item{% if current == 'calendar' %} is-active{% endif %}">{% icon 'calendar' 20 %}<span>Calendar</span></a>
+    </nav>
+</div>
+
+{% include "tasks/partials/task_modal.html" %}
+{% include "tasks/partials/confirm_modal.html" %}
+{% endwith %}
+{% endblock %}

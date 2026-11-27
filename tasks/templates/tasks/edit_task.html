@@ -1,157 +1,116 @@
+{% extends "tasks/layouts/app.html" %}
+{% load planit_ui %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}Edit · {{ task.title }}{% endblock %}
+{% block breadcrumb %}
+    <a href="{% url 'dashboard' %}">Dashboard</a><span class="crumb-sep">/</span><span class="crumb-current">Edit task</span>
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Task</title>
+{% block content %}
+{% with state=task|due_state %}
+<a class="back-link" href="{% url 'dashboard' %}">{% icon 'arrow-left' 14 %} Back to dashboard</a>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<header class="page-header reveal">
+    <div class="page-header-main">
+        <h1 class="page-title">Edit task</h1>
+        <p class="page-subtitle">Update the details, priority or schedule for this task.</p>
+    </div>
+    <div class="page-actions">
+        {% if task.status %}
+            <span class="badge badge-success">{% icon 'check' 12 %} Completed</span>
+        {% elif state == 'overdue' %}
+            <span class="badge badge-danger">{% icon 'alert-circle' 12 %} Overdue</span>
+        {% else %}
+            <span class="badge badge-warning">{% icon 'hourglass' 12 %} Pending</span>
+        {% endif %}
+    </div>
+</header>
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-        }
+<div class="form-layout">
+    <form method="POST" class="panel reveal" style="--i:1" data-flash="Task updated" data-flash-path="{% url 'dashboard' %}">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-section">
+                <div class="field">
+                    <label class="label" for="task-title">Title</label>
+                    <input class="input input-lg" id="task-title" type="text" name="title" value="{{ task.title }}" maxlength="200" required>
+                </div>
+                <div class="field">
+                    <label class="label" for="task-description">Description <span class="optional">Optional</span></label>
+                    <textarea class="textarea" id="task-description" name="description" rows="5" placeholder="Add details, notes or links…">{{ task.description|default:'' }}</textarea>
+                </div>
+            </div>
 
-        .task-container {
-            width: 100%;
-            max-width: 500px;
-            padding: 30px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
+            <div class="form-section">
+                <fieldset class="field" style="border:0;margin:0;padding:0">
+                    <legend class="label" style="margin-bottom:6px">Priority</legend>
+                    <div class="choice-group">
+                        <label class="choice"><input type="radio" name="priority" value="Low" {% if task.priority == "Low" %}checked{% endif %}><span><span class="priority priority-low">{% icon 'flag' 13 %}</span>Low</span></label>
+                        <label class="choice"><input type="radio" name="priority" value="Medium" {% if task.priority != "Low" and task.priority != "High" %}checked{% endif %}><span><span class="priority priority-medium">{% icon 'flag' 13 %}</span>Medium</span></label>
+                        <label class="choice"><input type="radio" name="priority" value="High" {% if task.priority == "High" %}checked{% endif %}><span><span class="priority priority-high">{% icon 'flag' 13 %}</span>High</span></label>
+                    </div>
+                </fieldset>
 
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
+                <fieldset class="field" style="border:0;margin:18px 0 0;padding:0">
+                    <legend class="label" style="margin-bottom:6px">Category</legend>
+                    <div class="choice-group">
+                        <label class="choice"><input type="radio" name="category" value="Work" {% if task.category == 'Work' %}checked{% endif %}><span><i class="dot" style="--dot: var(--category-work)"></i>Work</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Personal" {% if task.category == 'Personal' %}checked{% endif %}><span><i class="dot" style="--dot: var(--category-personal)"></i>Personal</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Study" {% if task.category == 'Study' %}checked{% endif %}><span><i class="dot" style="--dot: var(--category-study)"></i>Study</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Shopping" {% if task.category == 'Shopping' %}checked{% endif %}><span><i class="dot" style="--dot: var(--category-shopping)"></i>Shopping</span></label>
+                        <label class="choice"><input type="radio" name="category" value="Other" {% if task.category == 'Other' %}checked{% endif %}><span><i class="dot" style="--dot: var(--category-other)"></i>Other</span></label>
+                    </div>
+                </fieldset>
+            </div>
 
-        label {
-            display: block;
-            margin-bottom: 6px;
-        }
+            <div class="form-section">
+                <div class="field">
+                    <label class="label" for="task-due">Due date <span class="optional">Optional</span></label>
+                    <div class="due-row">
+                        <input class="input" id="task-due" type="datetime-local" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" data-due-input>
+                        <button type="button" class="preset-btn" data-due-preset="today">Today</button>
+                        <button type="button" class="preset-btn" data-due-preset="tomorrow">Tomorrow</button>
+                        <button type="button" class="preset-btn" data-due-preset="week">Next week</button>
+                    </div>
+                    <p class="hint">Clear the field to remove the due date.</p>
+                </div>
+            </div>
+        </div>
 
-        input,
-        textarea,
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 18px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-        }
+        <div class="panel-footer">
+            <a class="btn btn-ghost" href="{% url 'dashboard' %}">Cancel</a>
+            <button type="submit" class="btn btn-primary">{% icon 'check' 15 %}<span>Save changes</span></button>
+        </div>
+    </form>
 
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
+    <aside class="panel reveal" style="--i:2" aria-labelledby="details-heading">
+        <header class="panel-header bordered">
+            <h2 class="panel-title" id="details-heading">{% icon 'file-text' 16 %}Details</h2>
+        </header>
+        <dl class="details-list">
+            <div><dt>{% icon 'check-circle' 14 %}Status</dt><dd>{% if task.status %}Completed{% else %}Pending{% endif %}</dd></div>
+            <div><dt>{% icon 'flag' 14 %}Priority</dt><dd><span class="priority priority-{{ task.priority|lower }}">{{ task.priority }}</span></dd></div>
+            <div><dt>{% icon 'tag' 14 %}Category</dt><dd><span class="category category-{{ task.category|lower }}"><i class="dot"></i>{{ task.category }}</span></dd></div>
+            <div><dt>{% icon 'calendar' 14 %}Due</dt><dd>{% if task.due_date %}<span class="due due-{{ state }}">{{ task.due_date|date:"M j, Y · H:i" }}</span>{% else %}<span class="muted">Not set</span>{% endif %}</dd></div>
+            <div><dt>{% icon 'history' 14 %}Created</dt><dd>{{ task.created_at|date:"M j, Y · H:i" }}</dd></div>
+        </dl>
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #1d4ed8;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #2563eb;
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-            .task-container {
-                padding: 22px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="task-container">
-
-        <h2>Edit Task</h2>
-
-        <form method="POST">
+        <form method="POST" action="{% url 'toggle_task_status' task.id %}" class="danger-zone" style="border-top:1px solid var(--border)" data-flash="{% if task.status %}Task marked as pending{% else %}Task completed — nice work!{% endif %}" data-flash-path="{% url 'dashboard' %}">
             {% csrf_token %}
-
-            <label>Task Title:</label>
-
-            <input
-                type="text"
-                name="title"
-                value="{{ task.title }}"
-                required
-            >
-
-            <label>Description:</label>
-
-            <textarea name="description">{{ task.description }}</textarea>
-
-            <label>Priority:</label>
-
-            <select name="priority">
-                <option value="Low" {% if task.priority == "Low" %}selected{% endif %}>Low</option>
-
-                <option value="Medium" {% if task.priority == "Medium" %}selected{% endif %}>Medium</option>
-
-                <option value="High" {% if task.priority == "High" %}selected{% endif %}>High</option>
-            </select>
-
-            <label>Category:</label>
-
-            <select name="category">
-                <option value="Work" {% if task.category == 'Work' %}selected{% endif %}>Work</option>
-                <option value="Personal" {% if task.category == 'Personal' %}selected{% endif %}>Personal</option>
-                <option value="Study" {% if task.category == 'Study' %}selected{% endif %}>Study</option>
-                <option value="Shopping" {% if task.category == 'Shopping' %}selected{% endif %}>Shopping</option>
-                <option value="Other" {% if task.category == 'Other' %}selected{% endif %}>Other</option>
-            </select>
-
-            <label>Due Date:</label>
-
-            <input
-                type="datetime-local"
-                name="due_date"
-                value="{{ task.due_date|date:'Y-m-d\TH:i' }}"
-            >
-
-            <button type="submit">Update Task</button>
-
+            <button type="submit" class="btn btn-secondary btn-block">
+                {% if task.status %}{% icon 'rotate' 15 %}<span>Mark as pending</span>{% else %}{% icon 'check' 15 %}<span>Mark as completed</span>{% endif %}
+            </button>
         </form>
 
-        <a class="back-link" href="{% url 'dashboard' %}">
-            Back to Dashboard
-        </a>
-
-    </div>
-
-</body>
-</html>
+        <form method="POST" action="{% url 'delete_task' task.id %}" class="danger-zone"
+              data-flash="Task deleted" data-flash-path="{% url 'dashboard' %}"
+              data-confirm="“{{ task.title }}” will be permanently deleted. This can’t be undone."
+              data-confirm-title="Delete this task?" data-confirm-label="Delete task">
+            {% csrf_token %}
+            <p>Deleting a task removes it permanently.</p>
+            <button type="submit" class="btn btn-danger-ghost btn-block">{% icon 'trash' 15 %}<span>Delete task</span></button>
+        </form>
+    </aside>
+</div>
+{% endwith %}
+{% endblock %}

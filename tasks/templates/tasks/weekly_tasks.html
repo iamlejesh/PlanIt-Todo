@@ -1,197 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "tasks/layouts/app.html" %}
+{% load planit_ui %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Tasks</title>
+{% block title %}Week of {{ start_date|date:"M j" }}{% endblock %}
+{% block breadcrumb %}<span class="crumb-current">Weekly tasks</span>{% endblock %}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 25px;
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: auto;
-        }
-
-        .section {
-            background: white;
-            padding: 22px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
-        .header {
-            background: #2563eb;
-            color: white;
-        }
-
-        .header a {
-            color: white;
-        }
-
-        a {
-            color: #2563eb;
-            text-decoration: none;
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .navigation a {
-            padding: 10px 15px;
-            background: #eff6ff;
-            border-radius: 6px;
-        }
-
-        .day {
-            padding: 18px;
-            margin-top: 15px;
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-        }
-
-        .today {
-            border: 2px solid #2563eb;
-        }
-
-        .task {
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 6px;
-            background: white;
-            border: 1px solid #ddd;
-        }
-
-        .pending {
-            color: #b45309;
-        }
-
-        .completed {
-            color: #15803d;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 12px;
-            }
-
-            .section {
-                padding: 15px;
-            }
-
-            .navigation a {
-                padding: 8px;
-                font-size: 12px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-
-    <div class="section header">
-        <h1>Weekly Task View</h1>
-        <p>View your tasks for the entire week.</p>
-        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+{% block content %}
+{% week_stats weekly_data as stats %}
+<header class="page-header reveal">
+    <div class="page-header-main">
+        <p class="eyebrow">Weekly plan</p>
+        <h1 class="page-title">{{ start_date|date:"M j" }} – {{ end_date|date:"M j" }}<span class="muted">, {{ end_date|date:"Y" }}</span></h1>
+        <p class="page-subtitle">Your week at a glance, from Monday to Sunday.</p>
     </div>
-
-    <div class="section">
-
-        <div class="navigation">
-
-            <a href="?date={{ previous_week|date:'Y-m-d' }}">
-                Previous Week
-            </a>
-
-            <h3>
-                {{ start_date|date:"d M Y" }}
-                -
-                {{ end_date|date:"d M Y" }}
-            </h3>
-
-            <a href="?date={{ next_week|date:'Y-m-d' }}">
-                Next Week
-            </a>
-
+    <div class="page-actions">
+        <div class="btn-group" role="group" aria-label="Change week">
+            <a class="btn btn-secondary btn-icon" href="?date={{ previous_week|date:'Y-m-d' }}" aria-label="Previous week" data-tooltip="Previous week">{% icon 'chevron-left' 16 %}</a>
+            <a class="btn btn-secondary" href="{% url 'weekly_tasks' %}">This week</a>
+            <a class="btn btn-secondary btn-icon" href="?date={{ next_week|date:'Y-m-d' }}" aria-label="Next week" data-tooltip="Next week">{% icon 'chevron-right' 16 %}</a>
         </div>
-
+        <form method="GET" class="input-group" style="width:auto" aria-label="Jump to week">
+            <label class="sr-only" for="week-date">Jump to a date</label>
+            <input class="input" id="week-date" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()" style="width:auto">
+        </form>
+        <button type="button" class="btn btn-primary" data-open-task-modal>{% icon 'plus' 16 %}<span>New task</span></button>
     </div>
+</header>
 
-    <div class="section">
-
-        {% for day in weekly_data %}
-
-            <div class="day {% if day.is_today %}today{% endif %}">
-
-                <h3>
-                    {{ day.date|date:"l, d M Y" }}
-
-                    {% if day.is_today %}
-                        (Today)
-                    {% endif %}
-                </h3>
-
-                {% if day.tasks %}
-
-                    {% for task in day.tasks %}
-
-                        <div class="task">
-
-                            <h4>{{ task.title }}</h4>
-
-                            <p>Due: {{ task.due_date|date:"H:i" }}</p>
-
-                            <p>Priority: {{ task.priority }}</p>
-
-                            <p class="{% if task.status %}completed{% else %}pending{% endif %}">
-                                Status:
-                                {% if task.status %}
-                                    Completed
-                                {% else %}
-                                    Pending
-                                {% endif %}
-                            </p>
-
-                            <a href="{% url 'edit_task' task.id %}">
-                                Edit Task
-                            </a>
-
-                        </div>
-
-                    {% endfor %}
-
-                {% else %}
-
-                    <p>No tasks scheduled for this day.</p>
-
-                {% endif %}
-
-            </div>
-
-        {% endfor %}
-
-    </div>
-
+<div class="week-summary reveal" style="--i:1">
+    <span>{% icon 'list-checks' 15 %}</span>
+    <span><strong>{{ stats.total }}</strong> task{{ stats.total|pluralize }} this week</span>
+    <span><strong>{{ stats.done }}</strong> completed</span>
+    {% if stats.total %}
+        <div class="stat-bar tone-success" aria-hidden="true"><span style="--value: {{ stats.percent }}%"></span></div>
+        <span class="muted">{{ stats.percent }}%</span>
+    {% endif %}
 </div>
 
-</body>
-</html>
+<div class="week-board-wrap">
+    <div class="week-board">
+        {% for day in weekly_data %}
+            <section class="week-col{% if day.is_today %} is-today{% endif %}" style="--i: {{ forloop.counter }}" aria-label="{{ day.date|date:'l, F j' }}">
+                <header class="week-col-header">
+                    <a class="week-day-link" href="{% url 'daily_tasks' %}?date={{ day.date|date:'Y-m-d' }}">
+                        <span class="week-dow">{{ day.date|date:"D" }}</span>
+                        <span class="week-dom">{{ day.date|date:"j" }}</span>
+                        {% if day.is_today %}<span class="sr-only">(today)</span>{% endif %}
+                    </a>
+                    <span style="display:flex;align-items:center;gap:2px">
+                        {% if day.tasks %}<span class="badge">{{ day.tasks|length }}</span>{% endif %}
+                        <button type="button" class="icon-btn week-add" data-open-task-modal data-due="{{ day.date|date:'Y-m-d' }}T09:00" aria-label="Add task on {{ day.date|date:'l' }}" data-tooltip="Add task">{% icon 'plus' 15 %}</button>
+                    </span>
+                </header>
+                <div class="week-col-body">
+                    {% for task in day.tasks %}
+                        <article class="week-card{% if task.status %} is-done{% endif %}" data-priority="{{ task.priority|lower }}">
+                            <form method="POST" action="{% url 'toggle_task_status' task.id %}" class="task-check-form" data-async data-flash="{% if task.status %}Task marked as pending{% else %}Task completed — nice work!{% endif %}">
+                                {% csrf_token %}
+                                <button type="submit" class="task-check" aria-pressed="{{ task.status|yesno:'true,false' }}" aria-label="{% if task.status %}Mark {{ task.title }} as pending{% else %}Mark {{ task.title }} as completed{% endif %}">{% icon 'check' 10 %}</button>
+                            </form>
+                            <div class="week-card-body">
+                                <a class="task-title" href="{% url 'edit_task' task.id %}">{{ task.title }}</a>
+                                <div class="week-card-meta">
+                                    <span class="due{% if not task.status and task|due_state == 'overdue' %} due-overdue{% endif %}">{% icon 'clock' 11 %}{{ task.due_date|date:"H:i" }}</span>
+                                    <span class="priority priority-{{ task.priority|lower }}">{% icon 'flag' 11 %}{{ task.priority }}</span>
+                                    <span class="category category-{{ task.category|lower }}"><i class="dot"></i>{{ task.category }}</span>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <button type="button" class="week-empty" data-open-task-modal data-due="{{ day.date|date:'Y-m-d' }}T09:00">
+                            No tasks · add one
+                        </button>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

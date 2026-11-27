@@ -1,74 +1,79 @@
+{% extends "tasks/layouts/app.html" %}
+{% load planit_ui %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}Notification settings{% endblock %}
+{% block breadcrumb %}<a href="{% url 'notifications' %}">Notifications</a><span class="crumb-sep">/</span><span class="crumb-current">Settings</span>{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notification Preferences</title>
-</head>
+{% block content %}
+<div class="page-narrow">
+    <header class="page-header reveal">
+        <div class="page-header-main">
+            <p class="eyebrow">Preferences</p>
+            <h1 class="page-title">Notification settings</h1>
+            <p class="page-subtitle">Choose how PlanIt keeps you in the loop about your tasks.</p>
+        </div>
+    </header>
 
-<body>
+    <form method="POST" class="settings-stack">
+        {% csrf_token %}
 
-    <div class="container">
-
-        <h2>Notification Preferences</h2>
-        <p>Manage how you receive task notifications.</p>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            <h3>Email Notifications</h3>
-
-            <div>
-                <input
-                    type="checkbox"
-                    name="upcoming_email_enabled"
-                    id="upcoming_email_enabled"
-                    {% if preferences.upcoming_email_enabled %}checked{% endif %}
-                >
-                <label for="upcoming_email_enabled">
-                    Upcoming deadline reminders
-                </label>
+        <section class="panel reveal" style="--i:1" aria-labelledby="email-settings-heading">
+            <div class="settings-card-header">
+                <span class="settings-icon">{% icon 'mail' 18 %}</span>
+                <div>
+                    <h2 class="panel-title" id="email-settings-heading">Email reminders</h2>
+                    <p class="panel-subtitle">Sent to {{ request.user.email|default:"your account email" }}</p>
+                </div>
             </div>
 
-            <div>
-                <input
-                    type="checkbox"
-                    name="overdue_email_enabled"
-                    id="overdue_email_enabled"
-                    {% if preferences.overdue_email_enabled %}checked{% endif %}
-                >
-                <label for="overdue_email_enabled">
-                    Overdue task reminders
-                </label>
+            <label class="setting-row" for="upcoming_email_enabled">
+                <span>
+                    <span class="setting-title" style="display:block">Upcoming deadlines</span>
+                    <span class="setting-desc" style="display:block">Get an email when a task is due within the next 24 hours.</span>
+                </span>
+                <span class="switch">
+                    <input type="checkbox" role="switch" name="upcoming_email_enabled" id="upcoming_email_enabled" {% if preferences.upcoming_email_enabled %}checked{% endif %}>
+                    <span class="switch-track"></span>
+                </span>
+            </label>
+
+            <label class="setting-row" for="overdue_email_enabled">
+                <span>
+                    <span class="setting-title" style="display:block">Overdue tasks</span>
+                    <span class="setting-desc" style="display:block">Get an email when a task passes its due date without being completed.</span>
+                </span>
+                <span class="switch">
+                    <input type="checkbox" role="switch" name="overdue_email_enabled" id="overdue_email_enabled" {% if preferences.overdue_email_enabled %}checked{% endif %}>
+                    <span class="switch-track"></span>
+                </span>
+            </label>
+        </section>
+
+        <section class="panel reveal tone-success" style="--i:2" aria-labelledby="inapp-settings-heading">
+            <div class="settings-card-header">
+                <span class="settings-icon">{% icon 'bell-ring' 18 %}</span>
+                <div>
+                    <h2 class="panel-title" id="inapp-settings-heading">In-app notifications</h2>
+                    <p class="panel-subtitle">Activity updates inside PlanIt, with live alerts while you work.</p>
+                </div>
             </div>
 
-            <hr>
+            <label class="setting-row" for="in_app_notifications_enabled">
+                <span>
+                    <span class="setting-title" style="display:block">Enable in-app notifications</span>
+                    <span class="setting-desc" style="display:block">Record task activity in your inbox and show real-time alerts.</span>
+                </span>
+                <span class="switch">
+                    <input type="checkbox" role="switch" name="in_app_notifications_enabled" id="in_app_notifications_enabled" {% if preferences.in_app_notifications_enabled %}checked{% endif %}>
+                    <span class="switch-track"></span>
+                </span>
+            </label>
+        </section>
 
-            <h3>In-App Notifications</h3>
-
-            <div>
-                <input
-                    type="checkbox"
-                    name="in_app_notifications_enabled"
-                    id="in_app_notifications_enabled"
-                    {% if preferences.in_app_notifications_enabled %}checked{% endif %}
-                >
-                <label for="in_app_notifications_enabled">
-                    Enable in-app notifications
-                </label>
-            </div>
-
-            <br>
-
-            <button type="submit">Save Preferences</button>
-
-            <a href="{% url 'dashboard' %}">Back to Dashboard</a>
-
-        </form>
-
-    </div>
-
-</body>
-</html>
+        <div class="form-actions reveal" style="--i:3">
+            <a class="btn btn-ghost" href="{% url 'dashboard' %}">Back to dashboard</a>
+            <button type="submit" class="btn btn-primary">{% icon 'check' 15 %}<span>Save preferences</span></button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d1d2e"/>
+      <stop offset="1" stop-color="#151522"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9b9bff"/>
+      <stop offset="1" stop-color="#e48bc8"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26263a"/>
+      <stop offset="1" stop-color="#1b1b2a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Main window -->
+  <rect x="0.5" y="24.5" width="400" height="300" rx="14" fill="url(#card)" stroke="#2e2e44"/>
+  <circle cx="22" cy="44" r="4" fill="#3a3a52"/>
+  <circle cx="36" cy="44" r="4" fill="#3a3a52"/>
+  <circle cx="50" cy="44" r="4" fill="#3a3a52"/>
+  <rect x="0.5" y="62" width="400" height="1" fill="#2a2a3e"/>
+
+  <text x="24" y="94" fill="#f2f2fb" font-size="15" font-weight="600">Today</text>
+  <text x="24" y="112" fill="#8a8aa8" font-size="11">4 tasks · 2 completed</text>
+  <rect x="222" y="82" width="78" height="26" rx="7" fill="#5b5bd6"/>
+  <text x="239" y="99" fill="#fff" font-size="11" font-weight="600">+ New task</text>
+
+  <!-- Task rows -->
+  <g>
+    <rect x="16" y="128" width="368" height="44" rx="9" fill="#232336"/>
+    <circle cx="38" cy="150" r="8" fill="#3fb871"/>
+    <path d="m34.5 150 2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="56" y="141" width="150" height="7" rx="3.5" fill="#56566f"/>
+    <rect x="56" y="155" width="54" height="6" rx="3" fill="#3a3a52"/>
+    <rect x="300" y="143" width="66" height="14" rx="7" fill="#2b3a2f"/>
+    <text x="311" y="153.5" fill="#6fd49a" font-size="9" font-weight="600">Completed</text>
+  </g>
+  <g>
+    <rect x="16" y="180" width="368" height="44" rx="9" fill="#1f1f30"/>
+    <circle cx="38" cy="202" r="7.5" stroke="#f0565c" stroke-width="1.6"/>
+    <rect x="56" y="193" width="176" height="7" rx="3.5" fill="#d9d9ea"/>
+    <rect x="56" y="207" width="40" height="6" rx="3" fill="#5a2b31"/>
+    <rect x="102" y="207" width="44" height="6" rx="3" fill="#33335a"/>
+    <text x="314" y="205.5" fill="#ff8589" font-size="10" font-weight="600">Due 14:00</text>
+  </g>
+  <g>
+    <rect x="16" y="232" width="368" height="44" rx="9" fill="#1f1f30"/>
+    <circle cx="38" cy="254" r="7.5" stroke="#eaa443" stroke-width="1.6"/>
+    <rect x="56" y="245" width="128" height="7" rx="3.5" fill="#d9d9ea"/>
+    <rect x="56" y="259" width="46" height="6" rx="3" fill="#4d3a22"/>
+    <rect x="108" y="259" width="36" height="6" rx="3" fill="#1f4740"/>
+    <text x="322" y="257.5" fill="#a8acb8" font-size="10" font-weight="500">Tomorrow</text>
+  </g>
+  <g opacity="0.6">
+    <rect x="16" y="284" width="368" height="30" rx="9" fill="#1c1c2b"/>
+    <circle cx="38" cy="299" r="7" stroke="#6aa5f2" stroke-width="1.6"/>
+    <rect x="56" y="295" width="110" height="7" rx="3.5" fill="#6f6f8a"/>
+  </g>
+
+  <!-- Floating progress card -->
+  <g>
+    <rect x="330.5" y="0.5" width="188" height="150" rx="14" fill="url(#glass)" stroke="#34344d"/>
+    <text x="348" y="28" fill="#a9a9c6" font-size="10" font-weight="600" letter-spacing="0.8">WEEKLY PROGRESS</text>
+    <circle cx="384" cy="86" r="34" stroke="#2f2f46" stroke-width="8"/>
+    <circle cx="384" cy="86" r="34" stroke="url(#ring)" stroke-width="8" stroke-linecap="round" stroke-dasharray="155 214" transform="rotate(-90 384 86)"/>
+    <text x="384" y="91" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">72%</text>
+    <rect x="432" y="62" width="8" height="8" rx="2" fill="#9b9bff"/>
+    <text x="446" y="70" fill="#d4d4ea" font-size="10">18 done</text>
+    <rect x="432" y="82" width="8" height="8" rx="2" fill="#eaa443"/>
+    <text x="446" y="90" fill="#d4d4ea" font-size="10">5 open</text>
+    <rect x="432" y="102" width="8" height="8" rx="2" fill="#f0565c"/>
+    <text x="446" y="110" fill="#d4d4ea" font-size="10">2 late</text>
+  </g>
+
+  <!-- Floating notification -->
+  <g>
+    <rect x="250.5" y="282.5" width="268" height="62" rx="12" fill="#22223a" stroke="#383856"/>
+    <rect x="264" y="296" width="34" height="34" rx="9" fill="#2a2a5a"/>
+    <path d="M275 309a6 6 0 0 1 12 0c0 7 3 9 3 9h-18s3-2 3-9" stroke="#a9a9ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="310" y="309" fill="#f2f2fb" font-size="11" font-weight="600">Reminder</text>
+    <text x="310" y="325" fill="#9a9ab8" font-size="10">“Design review” is due in 1 hour</text>
+  </g>
+</svg>

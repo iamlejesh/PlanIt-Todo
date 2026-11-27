@@ -1,0 +1,59 @@
+{% load static planit_ui %}<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="PlanIt — plan, prioritise and finish your tasks.">
+    <title>{% block title %}PlanIt{% endblock %} · PlanIt</title>
+
+    <script>
+        /* Apply saved theme and sidebar state before first paint (no flash). */
+        (function () {
+            var root = document.documentElement;
+            try {
+                var theme = localStorage.getItem('planit-theme');
+                if (theme !== 'dark' && theme !== 'light') {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                root.setAttribute('data-theme', theme);
+                if (localStorage.getItem('planit-sidebar') === 'collapsed') {
+                    root.setAttribute('data-sidebar', 'collapsed');
+                }
+            } catch (error) { /* storage unavailable: keep defaults */ }
+            root.classList.add('js');
+        })();
+    </script>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='8' fill='%235b5bd6'/%3E%3Cpath d='M8 14.5l3.8 3.8L20.5 9.5' stroke='%23fff' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" href="{% static 'tasks/css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/components.css' %}">
+    {% block styles %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% include "tasks/partials/icons.html" %}
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="progress-bar" id="progress-bar" aria-hidden="true"></div>
+
+    {% block body %}{% endblock %}
+
+    <div class="toast-region" id="toast-region" role="region" aria-label="Notifications" aria-live="polite">
+        {% for message in messages %}
+            <div class="toast {% if message.tags == 'error' %}tone-danger{% elif message.tags == 'warning' %}tone-warning{% else %}tone-success{% endif %}" data-autodismiss>
+                <span class="toast-icon">{% if message.tags == 'error' or message.tags == 'warning' %}{% icon 'alert-circle' 14 %}{% else %}{% icon 'check' 14 %}{% endif %}</span>
+                <div class="toast-content"><p class="toast-message">{{ message }}</p></div>
+                <button type="button" class="icon-btn toast-close" data-toast-close aria-label="Dismiss">{% icon 'x' 14 %}</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script src="{% static 'tasks/js/app.js' %}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

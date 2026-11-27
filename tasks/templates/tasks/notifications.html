@@ -1,52 +1,92 @@
+{% extends "tasks/layouts/app.html" %}
+{% load planit_ui %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Notifications - PlanIt-Todo</title>
-</head>
-<body>
+{% block title %}Notifications{% endblock %}
+{% block breadcrumb %}<span class="crumb-current">Notifications</span>{% endblock %}
 
-    <h2>Notifications</h2>
-
-    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
-
-    <hr>
-
-    {% for notification in notifications %}
-
-        <div style="border: 1px solid #ccc; padding: 12px; margin-bottom: 10px;">
-
-            <p>
-                {{ notification.message }}
+{% block content %}
+<div class="page-narrow">
+    <header class="page-header reveal">
+        <div class="page-header-main">
+            <p class="eyebrow">Inbox</p>
+            <h1 class="page-title">Notifications</h1>
+            <p class="page-subtitle">
+                {% if notif.unread %}You have <strong>{{ notif.unread }}</strong> unread notification{{ notif.unread|pluralize }}.{% elif notifications %}You’re all caught up.{% else %}Updates about your tasks will appear here.{% endif %}
             </p>
-
-            <small>
-                {{ notification.created_at }}
-            </small>
-
-            {% if notification.is_read %}
-                <p>Read</p>
-            {% else %}
-                <p>Unread</p>
-
-                <form method="POST" action="{% url 'mark_notification_read' notification.id %}">
-                    {% csrf_token %}
-                    <button type="submit">Mark as Read</button>
-                </form>
-            {% endif %}
-
-            <form method="POST" action="{% url 'delete_notification' notification.id %}">
-                {% csrf_token %}
-                <button type="submit">Delete</button>
-            </form>
-
         </div>
+        <div class="page-actions">
+            <a class="btn btn-secondary" href="{% url 'notification_settings' %}">{% icon 'settings' 16 %}<span>Settings</span></a>
+        </div>
+    </header>
 
-    {% empty %}
+    <section class="panel reveal" style="--i:1" aria-label="Notification list">
+        {% if notifications %}
+            <header class="panel-header bordered">
+                <div class="segmented" data-filter-group="notification-list" role="group" aria-label="Show">
+                    <button type="button" class="segmented-item is-active" data-filter="all" aria-pressed="true">All <span class="seg-count">{{ notifications|length }}</span></button>
+                    <button type="button" class="segmented-item" data-filter="unread" aria-pressed="false">Unread <span class="seg-count">{{ notif.unread }}</span></button>
+                </div>
+                <span class="hint">Newest first</span>
+            </header>
 
-        <p>No notifications available.</p>
+            <ul class="notification-list" id="notification-list" role="list">
+                {% for notification in notifications %}
+                    <li class="notification-item{% if not notification.is_read %} is-unread{% endif %}" data-unread="{{ notification.is_read|yesno:'false,true' }}" style="--i: {{ forloop.counter0|add:0 }}">
+                        {% if notification.notification_type == 'task_completed' %}
+                            <span class="notif-icon tone-success">{% icon 'check-circle' 16 %}</span>
+                        {% elif notification.notification_type == 'task_updated' %}
+                            <span class="notif-icon tone-warning">{% icon 'pencil' 16 %}</span>
+                        {% elif notification.notification_type == 'task_deleted' %}
+                            <span class="notif-icon tone-danger">{% icon 'trash' 16 %}</span>
+                        {% else %}
+                            <span class="notif-icon tone-accent">{% icon 'plus' 16 %}</span>
+                        {% endif %}
 
-    {% endfor %}
+                        <div class="notif-body">
+                            <p class="notif-message">{{ notification.message }}</p>
+                            <p class="notif-meta">
+                                <time datetime="{{ notification.created_at|date:'c' }}" title="{{ notification.created_at|date:'l, F j, Y \a\t H:i' }}">{{ notification.created_at|timesince }} ago</time>
+                                <span aria-hidden="true">·</span>
+                                <span>{{ notification.get_notification_type_display }}</span>
+                                {% if notification.is_read %}<span aria-hidden="true">·</span><span>Read</span>{% else %}<span class="sr-only">· Unread</span>{% endif %}
+                            </p>
+                        </div>
 
-</body>
-</html>
+                        <div class="notif-actions">
+                            {% if not notification.is_read %}
+                                <form method="POST" action="{% url 'mark_notification_read' notification.id %}" data-async data-flash="Marked as read">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-ghost btn-sm">{% icon 'check' 14 %}<span>Mark as read</span></button>
+                                </form>
+                            {% endif %}
+                            <form method="POST" action="{% url 'delete_notification' notification.id %}" data-async data-flash="Notification deleted"
+                                  data-confirm="This notification will be removed from your inbox."
+                                  data-confirm-title="Delete notification?" data-confirm-label="Delete">
+                                {% csrf_token %}
+                                <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete notification" data-tooltip="Delete">{% icon 'trash' 15 %}</button>
+                            </form>
+                        </div>
+
+                        {% if not notification.is_read %}<span class="unread-dot" aria-hidden="true"></span>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="empty-state compact" id="notification-list-filtered-empty" hidden>
+                {% include "tasks/partials/art.html" with art="inbox" %}
+                <h3 class="empty-title">No unread notifications</h3>
+                <p class="empty-text">You’ve read everything. Nice.</p>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                {% include "tasks/partials/art.html" with art="inbox" %}
+                <h3 class="empty-title">You’re all caught up</h3>
+                <p class="empty-text">When you create, update, complete or delete tasks, a record of it will show up here.</p>
+                <div class="empty-actions">
+                    <a class="btn btn-secondary" href="{% url 'dashboard' %}">{% icon 'layout-dashboard' 16 %}<span>Go to dashboard</span></a>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
