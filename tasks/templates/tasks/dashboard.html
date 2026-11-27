@@ -17,6 +17,7 @@
             font-family: Arial, sans-serif;
             background-color: #f4f6f9;
             color: #333;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Main Layout */
@@ -122,6 +123,29 @@
             margin: 0 0 10px;
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-top h1 {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background-color: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            margin-top: 0;
+        }
+
+        .theme-toggle:hover {
+            background-color: #e2e8f0;
+        }
+
         .profile,
         .section {
             background-color: white;
@@ -129,6 +153,7 @@
             border-radius: 10px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         h2, h3, h4 {
@@ -259,6 +284,74 @@
         .notification-popup p {
             margin: 0;
             overflow-wrap: anywhere;
+        }
+
+        /* Dark Theme */
+
+        body.dark-theme {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .main-content {
+            background-color: #0f172a;
+        }
+
+        body.dark-theme .profile,
+        body.dark-theme .section {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        body.dark-theme .task-card {
+            background-color: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .stat-card {
+            background-color: #334155;
+        }
+
+        body.dark-theme .stat-card h3 {
+            color: #60a5fa;
+        }
+
+        body.dark-theme input,
+        body.dark-theme textarea,
+        body.dark-theme select {
+            background-color: #334155;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+
+        body.dark-theme input::placeholder,
+        body.dark-theme textarea::placeholder {
+            color: #cbd5e1;
+        }
+
+        body.dark-theme .notification-popup {
+            background-color: #1e293b;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .notification-popup h4 {
+            color: #60a5fa;
+        }
+
+        body.dark-theme hr {
+            border-color: #475569;
+        }
+
+        body.dark-theme .theme-toggle {
+            background-color: #334155;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+
+        body.dark-theme .theme-toggle:hover {
+            background-color: #475569;
         }
 
         /* Mobile Responsive Sidebar */
@@ -402,7 +495,19 @@
 
                 <div class="header">
 
-                    <h1>Todo Dashboard</h1>
+                    <div class="header-top">
+
+                        <h1>Todo Dashboard</h1>
+
+                        <button
+                            type="button"
+                            class="theme-toggle"
+                            id="theme-toggle"
+                        >
+                            Switch to Dark Mode
+                        </button>
+
+                    </div>
 
                     <h2>Welcome {{ request.user.username }}!</h2>
 
@@ -843,6 +948,37 @@
     <!-- JavaScript -->
 
     <script>
+        // Dark and Light Theme Toggle
+
+        const themeToggle = document.getElementById('theme-toggle');
+
+        // Load previously selected theme
+
+        const savedTheme = localStorage.getItem('planit-theme');
+
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeToggle.textContent = 'Switch to Light Mode';
+        }
+
+        // Toggle theme when button is clicked
+
+        themeToggle.addEventListener('click', function () {
+
+            document.body.classList.toggle('dark-theme');
+
+            const isDarkMode = document.body.classList.contains('dark-theme');
+
+            if (isDarkMode) {
+                localStorage.setItem('planit-theme', 'dark');
+                themeToggle.textContent = 'Switch to Light Mode';
+            } else {
+                localStorage.setItem('planit-theme', 'light');
+                themeToggle.textContent = 'Switch to Dark Mode';
+            }
+
+        });
+
         // Mobile sidebar toggle
 
         const sidebar = document.getElementById('sidebar');
