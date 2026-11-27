@@ -10,7 +10,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
 from datetime import timedelta
-
+import calendar
+from datetime import datetime, timedelta
 
 def register(request):
 
@@ -53,6 +54,8 @@ def dashboard(request):
     search_query = request.GET.get('search')
     category = request.GET.get('category')
     priority = request.GET.get('priority')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
     tasks = Task.objects.filter(user=request.user)
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
@@ -85,7 +88,11 @@ def dashboard(request):
 
     if priority:
         tasks = tasks.filter(priority=priority)
+    if start_date:
+        tasks = tasks.filter(due_date__date__gte=start_date)
 
+    if end_date:
+        tasks = tasks.filter(due_date__date__lte=end_date)
     sort_by = request.GET.get('sort', 'newest')
 
     if sort_by == 'oldest':
@@ -127,6 +134,8 @@ def dashboard(request):
         'selected_sort': sort_by,
         'selected_category': category,
         'selected_priority': priority,
+        'start_date': start_date,
+        'end_date': end_date,
     })
 
 
@@ -297,3 +306,174 @@ def change_password(request):
         return redirect('dashboard')
 
     return render(request, 'tasks/change_password.html')
+
+
+@login_required
+def calendar_view(request):
+
+    today = timezone.localdate()
+
+    try:
+        year = int(request.GET.get('year', today.year))
+        month = int(request.GET.get('month', today.month))
+
+        if month < 1 or month > 12:
+            raise ValueError
+
+        if year < 1900 or year > 9999:
+            raise ValueError
+
+    except (ValueError, TypeError):
+        year = today.year
+        month = today.month
+
+    first_day = datetime(year, month, 1)
+
+    if month == 12:
+        next_month = datetime(year + 1, 1, 1)
+    else:
+        next_month = datetime(year, month + 1, 1)
+
+    start_date = timezone.make_aware(
+        first_day,
+        timezone.get_current_timezone()
+    )
+
+    end_date = timezone.make_aware(
+        next_month,
+        timezone.get_current_timezone()
+    )
+
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__gte=start_date,
+        due_date__lt=end_date
+    ).order_by('due_date')
+
+    tasks_by_date = {}
+
+    for task in tasks:
+        task_date = timezone.localtime(task.due_date).date()
+
+        tasks_by_date.setdefault(task_date, []).append(task)
+
+    calendar_data = []
+
+    month_calendar = calendar.Calendar(
+        firstweekday=0
+    ).monthdatescalendar(year, month)
+
+    for week in month_calendar:
+
+        week_data = []
+
+        for day in week:
+
+            week_data.append({
+                'date': day,
+                'is_current_month': day.month == month,
+                'tasks': tasks_by_date.get(day, [])
+                if day.month == month else []
+            })
+
+        calendar_data.append(week_data)
+
+    previous_month = (
+        datetime(year, month, 1) - timedelta(days=1)
+    )
+
+    if month == 12:
+        following_month = datetime(year + 1, 1, 1)
+    else:
+        following_month = datetime(year, month + 1, 1)
+
+    return render(request, 'tasks/calendar.html', {
+        'calendar_data': calendar_data,
+        'month_name': calendar.month_name[month],
+        'year': year,
+        'previous_month': previous_month,
+        'following_month': following_month,
+        'today': today,
+    })
+
+@login_required
+def daily_tasks(request):
+
+    selected_date = request.GET.get('date')
+
+    try:
+        if selected_date:
+            selected_date = datetime.strptime(
+                selected_date, '%Y-%m-%d'
+            ).date()
+        else:
+            selected_date = timezone.localdate()
+
+    except ValueError:
+        selected_date = timezone.localdate()
+
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__date=selected_date
+    ).order_by('due_date')
+
+    return render(request, 'tasks/daily_tasks.html', {
+        'tasks': tasks,
+        'selected_date': selected_date,
+    })
+
+@login_required
+def weekly_tasks(request):
+
+    today = timezone.localdate()
+
+    selected_date = request.GET.get('date')
+
+    try:
+        if selected_date:
+            selected_date = datetime.strptime(
+                selected_date, '%Y-%m-%d'
+            ).date()
+        else:
+            selected_date = today
+
+    except ValueError:
+        selected_date = today
+
+    start_date = selected_date - timedelta(
+        days=selected_date.weekday()
+    )
+
+    end_date = start_date + timedelta(days=7)
+
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__date__gte=start_date,
+        due_date__date__lt=end_date
+    ).order_by('due_date')
+
+    weekly_data = []
+
+    for day_offset in range(7):
+
+        current_day = start_date + timedelta(days=day_offset)
+
+        day_tasks = [
+            task for task in tasks
+            if timezone.localtime(task.due_date).date() == current_day
+        ]
+
+        weekly_data.append({
+            'date': current_day,
+            'tasks': day_tasks,
+            'is_today': current_day == today,
+        })
+
+    return render(request, 'tasks/weekly_tasks.html', {
+        'weekly_data': weekly_data,
+        'start_date': start_date,
+        'end_date': end_date - timedelta(days=1),
+        'previous_week': start_date - timedelta(days=7),
+        'next_week': start_date + timedelta(days=7),
+        'selected_date': selected_date,
+    })

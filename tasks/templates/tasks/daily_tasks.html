@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Tasks</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .section {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .header {
+            background: #2563eb;
+            color: white;
+        }
+
+        .header a {
+            color: white;
+        }
+
+        input, button {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .task {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .pending {
+            color: #b45309;
+        }
+
+        .completed {
+            color: #15803d;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="section header">
+        <h1>Daily Tasks</h1>
+        <p>View all tasks scheduled for a particular day.</p>
+        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </div>
+
+    <div class="section">
+
+        <h2>Select Date</h2>
+
+        <form method="GET">
+
+            <input
+                type="date"
+                name="date"
+                value="{{ selected_date|date:'Y-m-d' }}"
+                required
+            >
+
+            <button type="submit">View Tasks</button>
+
+        </form>
+
+    </div>
+
+    <div class="section">
+
+        <h2>Tasks for {{ selected_date|date:"d-m-Y" }}</h2>
+
+        {% if tasks %}
+
+            {% for task in tasks %}
+
+                <div class="task">
+
+                    <h3>{{ task.title }}</h3>
+
+                    <p>{{ task.description }}</p>
+
+                    <p>Priority: {{ task.priority }}</p>
+
+                    <p>Category: {{ task.category }}</p>
+
+                    <p>
+                        Due Time: {{ task.due_date|date:"H:i" }}
+                    </p>
+
+                    <p class="{% if task.status %}completed{% else %}pending{% endif %}">
+                        Status:
+                        {% if task.status %}
+                            Completed
+                        {% else %}
+                            Pending
+                        {% endif %}
+                    </p>
+
+                    <a href="{% url 'edit_task' task.id %}">
+                        Edit Task
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>No tasks scheduled for this date.</p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

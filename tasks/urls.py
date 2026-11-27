@@ -13,4 +13,7 @@ urlpatterns = [
     path('toggle-task/<int:task_id>/', views.toggle_task_status, name='toggle_task_status'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('change-password/', views.change_password, name='change_password'),
+    path('calendar/', views.calendar_view, name='calendar'),
+    path('daily-tasks/', views.daily_tasks, name='daily_tasks'),
+    path('weekly-tasks/', views.weekly_tasks, name='weekly_tasks'),
 ]
