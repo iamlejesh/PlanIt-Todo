@@ -12,6 +12,73 @@ from django.db.models import Case, When, Value, IntegerField
 from datetime import timedelta
 import calendar
 from datetime import datetime, timedelta
+import json
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+import hashlib
+from django.core.cache import cache
+
+
+def send_verification_email(user):
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    verification_path = reverse(
+        'verify_email',
+        kwargs={
+            'uidb64': uid,
+            'token': token
+        }
+    )
+
+    verification_url = (
+        f"{settings.SITE_URL.rstrip('/')}{verification_path}"
+    )
+
+    payload = {
+        "sender": {
+            "name": "PlanIt-Todo",
+            "email": settings.BREVO_SENDER_EMAIL
+        },
+        "to": [
+            {
+                "email": user.email
+            }
+        ],
+        "subject": "Verify your PlanIt-Todo email",
+        "htmlContent": f"""
+            <h2>Welcome to PlanIt-Todo!</h2>
+            <p>Please verify your email address by clicking below:</p>
+            <a href="{verification_url}">Verify Email</a>
+        """
+    }
+
+    request = Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            "api-key": settings.BREVO_API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        method="POST"
+    )
+
+    try:
+        with urlopen(request, timeout=15) as response:
+            return response.status in (200, 201, 202)
+
+    except (HTTPError, URLError, TimeoutError) as error:
+        print("Brevo email error:", error)
+        return False
 
 def register(request):
 
@@ -34,18 +101,56 @@ def register(request):
                 'error': 'Username already exists'
             })
 
-        User.objects.create_user(
+        if User.objects.filter(email=email).exists():
+            return render(request, 'tasks/register.html', {
+                'error': 'Email already registered'
+            })
+
+        if not email:
+            return render(request, 'tasks/register.html', {
+                'error': 'Email is required'
+            })
+
+        user = User.objects.create_user(
             username=username,
             first_name=first_name,
             last_name=last_name,
             email=email,
-            password=password
+            password=password,
+            is_active=False
         )
 
-        return redirect('login')
+        if send_verification_email(user):
+            return render(
+                request,
+                'tasks/email_verification_sent.html'
+            )
+
+        user.delete()
+
+        return render(request, 'tasks/register.html', {
+            'error': 'Unable to send verification email. Please try again.'
+        })
 
     return render(request, 'tasks/register.html')
 
+def verify_email(request, uidb64, token):
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+
+        return render(request, 'tasks/email_verified.html')
+
+    return render(request, 'tasks/email_verification_invalid.html')
 
 @login_required
 def dashboard(request):
@@ -141,11 +246,42 @@ def dashboard(request):
 
 def user_login(request):
 
+    MAX_LOGIN_ATTEMPTS = 5
+    LOCKOUT_TIME = 15 * 60  # 15 minutes
+
     if request.method == 'POST':
 
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
 
+        # Get client IP address
+        ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+
+        # Generate secure cache keys
+        username_hash = hashlib.sha256(
+            username.casefold().encode()
+        ).hexdigest()
+
+        ip_hash = hashlib.sha256(
+            ip_address.encode()
+        ).hexdigest()
+
+        username_key = f'login_username_{username_hash}'
+        ip_key = f'login_ip_{ip_hash}'
+
+        # Check whether the login attempts have exceeded the limit
+        username_attempts = cache.get(username_key, 0)
+        ip_attempts = cache.get(ip_key, 0)
+
+        if (
+            username_attempts >= MAX_LOGIN_ATTEMPTS
+            or ip_attempts >= MAX_LOGIN_ATTEMPTS
+        ):
+            return render(request, 'tasks/login.html', {
+                'error': 'Too many failed login attempts. Please try again after 15 minutes.'
+            })
+
+        # Authenticate user
         user = authenticate(
             request,
             username=username,
@@ -153,15 +289,33 @@ def user_login(request):
         )
 
         if user is not None:
+
+            # Clear failed attempts after successful login
+            cache.delete(username_key)
+            cache.delete(ip_key)
+
             login(request, user)
+
             return redirect('dashboard')
+
+        # Increase failed login attempts
+        cache.set(
+            username_key,
+            username_attempts + 1,
+            timeout=LOCKOUT_TIME
+        )
+
+        cache.set(
+            ip_key,
+            ip_attempts + 1,
+            timeout=LOCKOUT_TIME
+        )
 
         return render(request, 'tasks/login.html', {
             'error': 'Invalid username or password'
         })
 
     return render(request, 'tasks/login.html')
-
 
 def user_logout(request):
 
@@ -477,3 +631,126 @@ def weekly_tasks(request):
         'next_week': start_date + timedelta(days=7),
         'selected_date': selected_date,
     })
+
+def send_password_reset_email(user):
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    reset_path = reverse(
+        'password_reset_confirm',
+        kwargs={
+            'uidb64': uid,
+            'token': token
+        }
+    )
+
+    reset_url = f"{settings.SITE_URL.rstrip('/')}{reset_path}"
+
+    payload = {
+        "sender": {
+            "name": "PlanIt-Todo",
+            "email": settings.BREVO_SENDER_EMAIL
+        },
+        "to": [
+            {
+                "email": user.email
+            }
+        ],
+        "subject": "Reset Your PlanIt-Todo Password",
+        "htmlContent": f"""
+            <h2>Password Reset Request</h2>
+            <p>Click the link below to reset your password:</p>
+            <a href="{reset_url}">Reset Password</a>
+            <p>If you did not request this, ignore this email.</p>
+        """
+    }
+
+    request = Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            "api-key": settings.BREVO_API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        method="POST"
+    )
+
+    try:
+        with urlopen(request, timeout=15) as response:
+            return response.status in (200, 201, 202)
+
+    except (HTTPError, URLError, TimeoutError) as error:
+        print("Brevo password reset error:", error)
+        return False
+    
+def password_reset_request(request):
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email', '').strip()
+
+        user = User.objects.filter(
+            email__iexact=email,
+            is_active=True
+        ).first()
+
+        if user:
+            send_password_reset_email(user)
+
+        return render(
+            request,
+            'tasks/password_reset_sent.html'
+        )
+
+    return render(request, 'tasks/password_reset.html')
+
+def password_reset_confirm(request, uidb64, token):
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid, is_active=True)
+
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        return render(
+            request,
+            'tasks/password_reset.html',
+            {
+                'error': 'Invalid or expired password reset link.'
+            }
+        )
+
+    if request.method == 'POST':
+
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            return render(request, 'tasks/password_reset_confirm.html', {
+                'error': 'Passwords do not match.'
+            })
+
+        try:
+            validate_password(password, user)
+
+        except ValidationError as error:
+            return render(request, 'tasks/password_reset_confirm.html', {
+                'error': ' '.join(error.messages)
+            })
+
+        user.set_password(password)
+        user.save()
+
+        return render(
+            request,
+            'tasks/password_reset_complete.html'
+        )
+
+    return render(
+        request,
+        'tasks/password_reset_confirm.html'
+    )

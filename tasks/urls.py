@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.user_login, name='home'),
     path('register/', views.register, name='register'),
+    path('verify-email/<uidb64>/<token>/',views.verify_email,name='verify_email'),
     path('login/', views.user_login, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('logout/', views.user_logout, name='logout'),
@@ -16,4 +17,6 @@ urlpatterns = [
     path('calendar/', views.calendar_view, name='calendar'),
     path('daily-tasks/', views.daily_tasks, name='daily_tasks'),
     path('weekly-tasks/', views.weekly_tasks, name='weekly_tasks'),
+    path('password-reset/', views.password_reset_request, name='password_reset'),
+    path('password-reset-confirm/<uidb64>/<token>/',views.password_reset_confirm,name='password_reset_confirm'),
 ]
