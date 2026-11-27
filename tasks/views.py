@@ -54,6 +54,8 @@ def dashboard(request):
     search_query = request.GET.get('search')
     category = request.GET.get('category')
     priority = request.GET.get('priority')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
     tasks = Task.objects.filter(user=request.user)
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
@@ -86,7 +88,11 @@ def dashboard(request):
 
     if priority:
         tasks = tasks.filter(priority=priority)
+    if start_date:
+        tasks = tasks.filter(due_date__date__gte=start_date)
 
+    if end_date:
+        tasks = tasks.filter(due_date__date__lte=end_date)
     sort_by = request.GET.get('sort', 'newest')
 
     if sort_by == 'oldest':
@@ -128,6 +134,8 @@ def dashboard(request):
         'selected_sort': sort_by,
         'selected_category': category,
         'selected_priority': priority,
+        'start_date': start_date,
+        'end_date': end_date,
     })
 
 
