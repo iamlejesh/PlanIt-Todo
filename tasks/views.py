@@ -1,5 +1,5 @@
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -82,8 +82,10 @@ def dashboard(request):
 
     if category:
         tasks = tasks.filter(category=category)
+
     if priority:
         tasks = tasks.filter(priority=priority)
+
     sort_by = request.GET.get('sort', 'newest')
 
     if sort_by == 'oldest':
@@ -187,7 +189,11 @@ def create_task(request):
 @login_required
 def edit_task(request, task_id):
 
-    task = Task.objects.get(id=task_id, user=request.user)
+    task = get_object_or_404(
+        Task,
+        id=task_id,
+        user=request.user
+    )
 
     if request.method == 'POST':
 
@@ -211,7 +217,11 @@ def delete_task(request, task_id):
 
     if request.method == 'POST':
 
-        task = Task.objects.get(id=task_id, user=request.user)
+        task = get_object_or_404(
+            Task,
+            id=task_id,
+            user=request.user
+        )
 
         task.delete()
 
@@ -223,7 +233,11 @@ def toggle_task_status(request, task_id):
 
     if request.method == 'POST':
 
-        task = Task.objects.get(id=task_id, user=request.user)
+        task = get_object_or_404(
+            Task,
+            id=task_id,
+            user=request.user
+        )
 
         task.status = not task.status
 
