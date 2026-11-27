@@ -19,4 +19,7 @@ urlpatterns = [
     path('weekly-tasks/', views.weekly_tasks, name='weekly_tasks'),
     path('password-reset/', views.password_reset_request, name='password_reset'),
     path('password-reset-confirm/<uidb64>/<token>/',views.password_reset_confirm,name='password_reset_confirm'),
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
 ]

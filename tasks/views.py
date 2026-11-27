@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from .models import Task
+from .models import Task, Notification
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
@@ -80,6 +80,7 @@ def send_verification_email(user):
         print("Brevo email error:", error)
         return False
 
+
 def register(request):
 
     if request.method == 'POST':
@@ -134,6 +135,7 @@ def register(request):
 
     return render(request, 'tasks/register.html')
 
+
 def verify_email(request, uidb64, token):
 
     try:
@@ -152,6 +154,7 @@ def verify_email(request, uidb64, token):
 
     return render(request, 'tasks/email_verification_invalid.html')
 
+
 @login_required
 def dashboard(request):
 
@@ -161,7 +164,9 @@ def dashboard(request):
     priority = request.GET.get('priority')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+
     tasks = Task.objects.filter(user=request.user)
+
     total_tasks = tasks.count()
     completed_tasks = tasks.filter(status=True).count()
     pending_tasks = tasks.filter(status=False).count()
@@ -193,11 +198,13 @@ def dashboard(request):
 
     if priority:
         tasks = tasks.filter(priority=priority)
+
     if start_date:
         tasks = tasks.filter(due_date__date__gte=start_date)
 
     if end_date:
         tasks = tasks.filter(due_date__date__lte=end_date)
+
     sort_by = request.GET.get('sort', 'newest')
 
     if sort_by == 'oldest':
@@ -227,6 +234,12 @@ def dashboard(request):
 
     tasks = paginator.get_page(page_number)
 
+    # Get unread notification count
+    unread_notifications_count = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
     return render(request, 'tasks/dashboard.html', {
         'tasks': tasks,
         'selected_status': status,
@@ -241,6 +254,7 @@ def dashboard(request):
         'selected_priority': priority,
         'start_date': start_date,
         'end_date': end_date,
+        'unread_notifications_count': unread_notifications_count,
     })
 
 
@@ -317,6 +331,7 @@ def user_login(request):
 
     return render(request, 'tasks/login.html')
 
+
 def user_logout(request):
 
     if request.method == 'POST':
@@ -337,13 +352,19 @@ def create_task(request):
         due_date = request.POST.get('due_date')
         category = request.POST.get('category')
 
-        Task.objects.create(
+        task = Task.objects.create(
             user=request.user,
             title=title,
             description=description,
             priority=priority,
             due_date=due_date if due_date else None,
             category=category
+        )
+
+        Notification.objects.create(
+            user=request.user,
+            message=f'Your task "{task.title}" was created.',
+            notification_type='task_created'
         )
 
         return redirect('dashboard')
@@ -362,11 +383,20 @@ def edit_task(request, task_id):
 
         task.title = request.POST.get('title')
         task.description = request.POST.get('description')
+
         due_date = request.POST.get('due_date')
         task.due_date = due_date if due_date else None
+
         task.priority = request.POST.get('priority')
         task.category = request.POST.get('category')
+
         task.save()
+
+        Notification.objects.create(
+            user=request.user,
+            message=f'Your task "{task.title}" was updated.',
+            notification_type='task_updated'
+        )
 
         return redirect('dashboard')
 
@@ -384,6 +414,13 @@ def delete_task(request, task_id):
             Task,
             id=task_id,
             user=request.user
+        )
+
+        # Create notification before deleting the task
+        Notification.objects.create(
+            user=request.user,
+            message=f'Your task "{task.title}" was deleted.',
+            notification_type='task_deleted'
         )
 
         task.delete()
@@ -405,6 +442,13 @@ def toggle_task_status(request, task_id):
         task.status = not task.status
 
         task.save()
+
+        if task.status:
+            Notification.objects.create(
+                user=request.user,
+                message=f'You completed "{task.title}".',
+                notification_type='task_completed'
+            )
 
     return redirect('dashboard')
 
@@ -550,6 +594,7 @@ def calendar_view(request):
         'today': today,
     })
 
+
 @login_required
 def daily_tasks(request):
 
@@ -575,6 +620,7 @@ def daily_tasks(request):
         'tasks': tasks,
         'selected_date': selected_date,
     })
+
 
 @login_required
 def weekly_tasks(request):
@@ -632,6 +678,7 @@ def weekly_tasks(request):
         'selected_date': selected_date,
     })
 
+
 def send_password_reset_email(user):
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -684,7 +731,8 @@ def send_password_reset_email(user):
     except (HTTPError, URLError, TimeoutError) as error:
         print("Brevo password reset error:", error)
         return False
-    
+
+
 def password_reset_request(request):
 
     if request.method == 'POST':
@@ -705,6 +753,7 @@ def password_reset_request(request):
         )
 
     return render(request, 'tasks/password_reset.html')
+
 
 def password_reset_confirm(request, uidb64, token):
 
@@ -754,3 +803,48 @@ def password_reset_confirm(request, uidb64, token):
         request,
         'tasks/password_reset_confirm.html'
     )
+
+
+@login_required
+def notifications(request):
+
+    user_notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    return render(request, 'tasks/notifications.html', {
+        'notifications': user_notifications
+    })
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+
+    if request.method == 'POST':
+
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            user=request.user
+        )
+
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+
+    return redirect('notifications')
+
+
+@login_required
+def delete_notification(request, notification_id):
+
+    if request.method == 'POST':
+
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            user=request.user
+        )
+
+        notification.delete()
+
+    return redirect('notifications')

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -203,6 +204,13 @@
 
             <a href="{% url 'weekly_tasks' %}" style="color: white;">
                 Weekly Tasks
+            </a>
+
+            <a href="{% url 'notifications' %}" style="color: white;">
+                Notifications
+                {% if unread_notifications_count %}
+                    ({{ unread_notifications_count }})
+                {% endif %}
             </a>
 
             <h2>Welcome {{ request.user.username }}!</h2>
