@@ -17,6 +17,8 @@ class Task(models.Model):
     priority = models.CharField(max_length=10, default='Medium')
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField(blank=True, null=True)
+    upcoming_reminder_sent_for = models.DateTimeField(null=True,blank=True)
+    overdue_reminder_sent_for = models.DateTimeField(null=True,blank=True)
 
     category = models.CharField(
         max_length=20,
