@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Preferences</title>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>Notification Preferences</h2>
+        <p>Manage how you receive task notifications.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <h3>Email Notifications</h3>
+
+            <div>
+                <input
+                    type="checkbox"
+                    name="upcoming_email_enabled"
+                    id="upcoming_email_enabled"
+                    {% if preferences.upcoming_email_enabled %}checked{% endif %}
+                >
+                <label for="upcoming_email_enabled">
+                    Upcoming deadline reminders
+                </label>
+            </div>
+
+            <div>
+                <input
+                    type="checkbox"
+                    name="overdue_email_enabled"
+                    id="overdue_email_enabled"
+                    {% if preferences.overdue_email_enabled %}checked{% endif %}
+                >
+                <label for="overdue_email_enabled">
+                    Overdue task reminders
+                </label>
+            </div>
+
+            <hr>
+
+            <h3>In-App Notifications</h3>
+
+            <div>
+                <input
+                    type="checkbox"
+                    name="in_app_notifications_enabled"
+                    id="in_app_notifications_enabled"
+                    {% if preferences.in_app_notifications_enabled %}checked{% endif %}
+                >
+                <label for="in_app_notifications_enabled">
+                    Enable in-app notifications
+                </label>
+            </div>
+
+            <br>
+
+            <button type="submit">Save Preferences</button>
+
+            <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+
+        </form>
+
+    </div>
+
+</body>
+</html>

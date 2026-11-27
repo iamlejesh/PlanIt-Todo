@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from .models import Task, Notification
+from .models import Task, Notification, NotificationPreference
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
@@ -24,6 +24,21 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 import hashlib
 from django.core.cache import cache
+from django.contrib import messages
+
+
+def create_user_notification(user, message, notification_type):
+
+    preferences, created = NotificationPreference.objects.get_or_create(
+        user=user
+    )
+
+    if preferences.in_app_notifications_enabled:
+        Notification.objects.create(
+            user=user,
+            message=message,
+            notification_type=notification_type
+        )
 
 
 def send_verification_email(user):
@@ -361,10 +376,10 @@ def create_task(request):
             category=category
         )
 
-        Notification.objects.create(
-            user=request.user,
-            message=f'Your task "{task.title}" was created.',
-            notification_type='task_created'
+        create_user_notification(
+            request.user,
+            f'Your task "{task.title}" was created.',
+            'task_created'
         )
 
         return redirect('dashboard')
@@ -392,10 +407,10 @@ def edit_task(request, task_id):
 
         task.save()
 
-        Notification.objects.create(
-            user=request.user,
-            message=f'Your task "{task.title}" was updated.',
-            notification_type='task_updated'
+        create_user_notification(
+            request.user,
+            f'Your task "{task.title}" was updated.',
+            'task_updated'
         )
 
         return redirect('dashboard')
@@ -417,10 +432,10 @@ def delete_task(request, task_id):
         )
 
         # Create notification before deleting the task
-        Notification.objects.create(
-            user=request.user,
-            message=f'Your task "{task.title}" was deleted.',
-            notification_type='task_deleted'
+        create_user_notification(
+            request.user,
+            f'Your task "{task.title}" was deleted.',
+            'task_deleted'
         )
 
         task.delete()
@@ -444,10 +459,10 @@ def toggle_task_status(request, task_id):
         task.save()
 
         if task.status:
-            Notification.objects.create(
-                user=request.user,
-                message=f'You completed "{task.title}".',
-                notification_type='task_completed'
+            create_user_notification(
+                request.user,
+                f'You completed "{task.title}".',
+                'task_completed'
             )
 
     return redirect('dashboard')
@@ -848,3 +863,36 @@ def delete_notification(request, notification_id):
         notification.delete()
 
     return redirect('notifications')
+
+
+@login_required
+def notification_settings(request):
+
+    preferences, created = NotificationPreference.objects.get_or_create(
+        user=request.user
+    )
+
+    if request.method == 'POST':
+        preferences.upcoming_email_enabled = (
+            request.POST.get('upcoming_email_enabled') == 'on'
+        )
+
+        preferences.overdue_email_enabled = (
+            request.POST.get('overdue_email_enabled') == 'on'
+        )
+
+        preferences.in_app_notifications_enabled = (
+            request.POST.get('in_app_notifications_enabled') == 'on'
+        )
+
+        preferences.save()
+
+        messages.success(request, 'Notification preferences updated successfully.')
+
+        return redirect('notification_settings')
+
+    return render(
+        request,
+        'tasks/notification_settings.html',
+        {'preferences': preferences}
+    )

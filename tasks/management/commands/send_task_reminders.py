@@ -8,7 +8,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db import models
-from tasks.models import Task
+
+from tasks.models import Task, NotificationPreference
 
 
 def send_reminder_email(task, reminder_type):
@@ -88,13 +89,31 @@ class Command(BaseCommand):
         upcoming_count = 0
         overdue_count = 0
 
+        # Upcoming deadline reminders
         for task in upcoming_tasks:
+
+            preferences, created = NotificationPreference.objects.get_or_create(
+                user=task.user
+            )
+
+            if not preferences.upcoming_email_enabled:
+                continue
+
             if send_reminder_email(task, 'upcoming'):
                 task.upcoming_reminder_sent_for = task.due_date
                 task.save(update_fields=['upcoming_reminder_sent_for'])
                 upcoming_count += 1
 
+        # Overdue task reminders
         for task in overdue_tasks:
+
+            preferences, created = NotificationPreference.objects.get_or_create(
+                user=task.user
+            )
+
+            if not preferences.overdue_email_enabled:
+                continue
+
             if send_reminder_email(task, 'overdue'):
                 task.overdue_reminder_sent_for = task.due_date
                 task.save(update_fields=['overdue_reminder_sent_for'])
@@ -105,6 +124,7 @@ class Command(BaseCommand):
                 f'Upcoming reminders sent: {upcoming_count}'
             )
         )
+
         self.stdout.write(
             self.style.SUCCESS(
                 f'Overdue reminders sent: {overdue_count}'
