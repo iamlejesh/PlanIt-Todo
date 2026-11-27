@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from django.http import JsonResponse
 from .models import Task, Notification, NotificationPreference
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
@@ -896,3 +897,46 @@ def notification_settings(request):
         'tasks/notification_settings.html',
         {'preferences': preferences}
     )
+
+
+@login_required
+def notification_updates(request):
+
+    preferences, created = NotificationPreference.objects.get_or_create(
+        user=request.user
+    )
+
+    unread_count = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
+    if not preferences.in_app_notifications_enabled:
+        return JsonResponse({
+            'unread_count': unread_count,
+            'notifications': []
+        })
+
+    try:
+        last_id = int(request.GET.get('last_id', 0))
+    except (ValueError, TypeError):
+        last_id = 0
+
+    new_notifications = Notification.objects.filter(
+        user=request.user,
+        id__gt=last_id
+    ).order_by('id')[:20]
+
+    notifications_data = [
+        {
+            'id': notification.id,
+            'message': notification.message,
+            'created_at': notification.created_at.isoformat(),
+        }
+        for notification in new_notifications
+    ]
+
+    return JsonResponse({
+        'unread_count': unread_count,
+        'notifications': notifications_data
+    })

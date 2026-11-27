@@ -149,6 +149,37 @@
             margin-top: 20px;
         }
 
+        /* Real-time notification popup */
+
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            max-width: calc(100% - 40px);
+            background-color: white;
+            border-left: 5px solid #2563eb;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+        }
+
+        .notification-popup.show {
+            display: block;
+        }
+
+        .notification-popup h4 {
+            margin-bottom: 8px;
+            color: #2563eb;
+        }
+
+        .notification-popup p {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 12px;
@@ -208,9 +239,7 @@
 
             <a href="{% url 'notifications' %}" style="color: white;">
                 Notifications
-                {% if unread_notifications_count %}
-                    ({{ unread_notifications_count }})
-                {% endif %}
+                (<span id="unread-notification-count">{{ unread_notifications_count }}</span>)
             </a>
 
             <h2>Welcome {{ request.user.username }}!</h2>
@@ -647,6 +676,102 @@
         </div>
 
     </div>
+
+    <!-- Real-time Notification Popup -->
+
+    <div id="notification-popup" class="notification-popup" role="status" aria-live="polite">
+        <h4>New Notification</h4>
+        <p id="notification-popup-message"></p>
+        <a href="{% url 'notifications' %}">View Notifications</a>
+    </div>
+
+    <!-- Real-time Notification JavaScript -->
+
+    <script>
+        const notificationUpdatesUrl = "{% url 'notification_updates' %}";
+
+        const notificationCountElement = document.getElementById(
+            'unread-notification-count'
+        );
+
+        const notificationPopup = document.getElementById(
+            'notification-popup'
+        );
+
+        const notificationPopupMessage = document.getElementById(
+            'notification-popup-message'
+        );
+
+        let lastNotificationId = 0;
+        let notificationPopupTimeout = null;
+
+        async function checkNotifications() {
+
+            try {
+
+                const response = await fetch(
+                    notificationUpdatesUrl + '?last_id=' + lastNotificationId,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    }
+                );
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Update unread notification count
+                notificationCountElement.textContent = data.unread_count;
+
+                // Display newly received notifications
+                if (data.notifications && data.notifications.length > 0) {
+
+                    data.notifications.forEach(notification => {
+
+                        lastNotificationId = Math.max(
+                            lastNotificationId,
+                            notification.id
+                        );
+
+                        notificationPopupMessage.textContent =
+                            notification.message;
+
+                        notificationPopup.classList.add('show');
+
+                        // Hide the popup after 5 seconds
+                        clearTimeout(notificationPopupTimeout);
+
+                        notificationPopupTimeout = setTimeout(() => {
+                            notificationPopup.classList.remove('show');
+                        }, 5000);
+
+                    });
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    'Unable to fetch notifications:',
+                    error
+                );
+
+            }
+
+        }
+
+        // Check immediately when dashboard loads
+        checkNotifications();
+
+        // Check for new notifications every 10 seconds
+        setInterval(checkNotifications, 10000);
+    </script>
 
 </body>
 
