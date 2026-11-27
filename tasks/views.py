@@ -413,3 +413,59 @@ def daily_tasks(request):
         'tasks': tasks,
         'selected_date': selected_date,
     })
+
+@login_required
+def weekly_tasks(request):
+
+    today = timezone.localdate()
+
+    selected_date = request.GET.get('date')
+
+    try:
+        if selected_date:
+            selected_date = datetime.strptime(
+                selected_date, '%Y-%m-%d'
+            ).date()
+        else:
+            selected_date = today
+
+    except ValueError:
+        selected_date = today
+
+    start_date = selected_date - timedelta(
+        days=selected_date.weekday()
+    )
+
+    end_date = start_date + timedelta(days=7)
+
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__date__gte=start_date,
+        due_date__date__lt=end_date
+    ).order_by('due_date')
+
+    weekly_data = []
+
+    for day_offset in range(7):
+
+        current_day = start_date + timedelta(days=day_offset)
+
+        day_tasks = [
+            task for task in tasks
+            if timezone.localtime(task.due_date).date() == current_day
+        ]
+
+        weekly_data.append({
+            'date': current_day,
+            'tasks': day_tasks,
+            'is_today': current_day == today,
+        })
+
+    return render(request, 'tasks/weekly_tasks.html', {
+        'weekly_data': weekly_data,
+        'start_date': start_date,
+        'end_date': end_date - timedelta(days=1),
+        'previous_week': start_date - timedelta(days=7),
+        'next_week': start_date + timedelta(days=7),
+        'selected_date': selected_date,
+    })
