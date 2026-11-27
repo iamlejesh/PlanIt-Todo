@@ -1,370 +1,595 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .header {
+            background-color: #2563eb;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+        }
+
+        .profile,
+        .section {
+            background-color: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        h2, h3, h4 {
+            margin-top: 0;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            max-width: 450px;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2563eb;
+            color: white;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        .task-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+
+        .task-card h4 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background-color: #eff6ff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 25px;
+            color: #2563eb;
+            margin-bottom: 5px;
+        }
+
+        .filter-links {
+            margin: 15px 0;
+        }
+
+        .filter-links a {
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .danger {
+            color: #dc2626;
+        }
+
+        .logout {
+            margin-top: 20px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .statistics {
+                grid-template-columns: 1fr;
+            }
+
+            .profile,
+            .section {
+                padding: 16px;
+            }
+
+            .header {
+                padding: 18px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <h2>User Profile</h2>
+    <div class="container">
 
-    <p>Username: {{ request.user.username }}</p>
-    <p>Email: {{ request.user.email }}</p>
+        <!-- User Profile -->
 
-    <a href="{% url 'edit_profile' %}">Edit Profile</a>
-    <br>
-    <a href="{% url 'change_password' %}">Change Password</a>
+        <div class="profile">
 
-    <hr>
+            <h2>User Profile</h2>
 
-    <h1>Todo Dashboard</h1>
+            <p>Username: {{ request.user.username }}</p>
+            <p>Email: {{ request.user.email }}</p>
 
-    <h2>Welcome {{ request.user.username }}!</h2>
+            <a href="{% url 'edit_profile' %}">Edit Profile</a>
+            <a href="{% url 'change_password' %}">Change Password</a>
 
-    <p>You have successfully logged in.</p>
+        </div>
 
-    <hr>
+        <!-- Dashboard Header -->
 
-    <h3>Create New Task</h3>
+        <div class="header">
 
-    <form method="POST" action="{% url 'create_task' %}">
-        {% csrf_token %}
+            <h1>Todo Dashboard</h1>
 
-        <input type="text" name="title" placeholder="Enter task title" required>
-        <br><br>
+            <h2>Welcome {{ request.user.username }}!</h2>
 
-        <textarea name="description" placeholder="Enter task description"></textarea>
-        <br><br>
+            <p>You have successfully logged in.</p>
 
-        <label>Priority:</label>
+        </div>
 
-        <select name="priority">
-            <option value="Low">Low</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="High">High</option>
-        </select>
-        <br><br>
+        <!-- Create Task -->
 
-        <label>Category:</label>
+        <div class="section">
 
-        <select name="category">
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Study">Study</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Other" selected>Other</option>
-        </select>
-        <br><br>
+            <h3>Create New Task</h3>
 
-        <label>Due Date:</label>
+            <form method="POST" action="{% url 'create_task' %}">
+                {% csrf_token %}
 
-        <input type="datetime-local" name="due_date">
-        <br><br>
+                <input type="text" name="title" placeholder="Enter task title" required>
+                <br><br>
 
-        <button type="submit">Add Task</button>
-    </form>
+                <textarea name="description" placeholder="Enter task description"></textarea>
+                <br><br>
 
-    <hr>
+                <label>Priority:</label>
+                <br>
 
-    <h3>Overdue Tasks</h3>
+                <select name="priority">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select>
+                <br><br>
 
-    {% if overdue_tasks %}
+                <label>Category:</label>
+                <br>
 
-        <p style="color: red;">
-            You have {{ overdue_tasks.count }} overdue task(s).
-        </p>
+                <select name="category">
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Study">Study</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Other" selected>Other</option>
+                </select>
+                <br><br>
 
-        {% for task in overdue_tasks %}
-            <p>
-                {{ task.title }} -
-                Due: {{ task.due_date|date:"d-m-Y H:i" }}
-            </p>
-        {% endfor %}
+                <label>Due Date:</label>
+                <br>
 
-    {% else %}
+                <input type="datetime-local" name="due_date">
+                <br><br>
 
-        <p>No overdue tasks.</p>
+                <button type="submit">Add Task</button>
 
-    {% endif %}
+            </form>
 
-    <hr>
+        </div>
 
-    <h3>Upcoming Tasks (Next 24 Hours)</h3>
+        <!-- Overdue Tasks -->
 
-    {% if upcoming_tasks %}
+        <div class="section">
 
-        {% for task in upcoming_tasks %}
+            <h3 class="danger">Overdue Tasks</h3>
 
-            <p>
-                {{ task.title }} -
-                Due: {{ task.due_date|date:"d-m-Y H:i" }}
-            </p>
+            {% if overdue_tasks %}
 
-        {% endfor %}
-
-    {% else %}
-
-        <p>No upcoming tasks in the next 24 hours.</p>
-
-    {% endif %}
-
-    <hr>
-
-    <h3>Task Statistics</h3>
-
-    <p>Total Tasks: {{ total_tasks }}</p>
-
-    <p>Completed Tasks: {{ completed_tasks }}</p>
-
-    <p>Pending Tasks: {{ pending_tasks }}</p>
-
-    <hr>
-
-    <h3>My Tasks</h3>
-
-    <form method="GET" action="{% url 'dashboard' %}">
-
-        <input
-            type="text"
-            name="search"
-            placeholder="Search tasks..."
-            value="{{ search_query|default:'' }}"
-        >
-
-        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-
-        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
-
-        <button type="submit">Search</button>
-
-    </form>
-
-    <br>
-
-    <p>Filter Tasks:</p>
-
-    <a href="?search={{ search_query|default:'' }}&sort={{ selected_sort }}">All</a> |
-
-    <a href="?search={{ search_query|default:'' }}&status=pending&sort={{ selected_sort }}">Pending</a> |
-
-    <a href="?search={{ search_query|default:'' }}&status=completed&sort={{ selected_sort }}">Completed</a>
-
-    <br><br>
-
-    <form method="GET" action="{% url 'dashboard' %}">
-
-        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-
-        <label>Sort Tasks:</label>
-
-        <select name="sort" onchange="this.form.submit()">
-
-            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>
-                Newest First
-            </option>
-
-            <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
-                Oldest First
-            </option>
-
-            <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
-                Priority: High to Low
-            </option>
-
-            <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
-                Due Date: Earliest First
-            </option>
-
-        </select>
-
-    </form>
-
-    <br>
-
-    <!-- Category Filter -->
-
-    <form method="GET" action="{% url 'dashboard' %}">
-
-        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
-
-        <label>Filter by Category:</label>
-
-        <select name="category" onchange="this.form.submit()">
-
-            <option value="" {% if not selected_category %}selected{% endif %}>
-                All Categories
-            </option>
-
-            <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>
-                Work
-            </option>
-
-            <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>
-                Personal
-            </option>
-
-            <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>
-                Study
-            </option>
-
-            <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>
-                Shopping
-            </option>
-
-            <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>
-                Other
-            </option>
-
-        </select>
-
-    </form>
-
-    <br>
-
-    <!-- Priority Filter -->
-
-    <form method="GET" action="{% url 'dashboard' %}">
-
-        <input type="hidden" name="search" value="{{ search_query|default:'' }}">
-        <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
-        <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
-        <input type="hidden" name="category" value="{{ selected_category|default:'' }}">
-
-        <label>Filter by Priority:</label>
-
-        <select name="priority" onchange="this.form.submit()">
-
-            <option value="" {% if not selected_priority %}selected{% endif %}>
-                All Priorities
-            </option>
-
-            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
-                High
-            </option>
-
-            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
-                Medium
-            </option>
-
-            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
-                Low
-            </option>
-
-        </select>
-
-    </form>
-
-    <hr>
-
-    {% if tasks %}
-
-        {% for task in tasks %}
-
-            <div>
-
-                <h4>{{ task.title }}</h4>
-
-                <p>Priority: {{ task.priority }}</p>
-                <p>Category: {{ task.category }}</p>
-                <p>{{ task.description }}</p>
-
-                <p>
-                    Due Date:
-
-                    {% if task.due_date %}
-                        {{ task.due_date|date:"d-m-Y H:i" }}
-                    {% else %}
-                        Not set
-                    {% endif %}
+                <p class="danger">
+                    You have {{ overdue_tasks.count }} overdue task(s).
                 </p>
 
-                <p>
-                    Status:
+                {% for task in overdue_tasks %}
+                    <p>
+                        {{ task.title }} -
+                        Due: {{ task.due_date|date:"d-m-Y H:i" }}
+                    </p>
+                {% endfor %}
 
-                    {% if task.status %}
-                        Completed
-                    {% else %}
-                        Pending
-                    {% endif %}
-                </p>
+            {% else %}
 
-                <p>Created: {{ task.created_at }}</p>
-
-                <a href="{% url 'edit_task' task.id %}">Edit</a>
-
-                <form method="POST" action="{% url 'delete_task' task.id %}">
-                    {% csrf_token %}
-                    <button type="submit">Delete</button>
-                </form>
-
-                <form method="POST" action="{% url 'toggle_task_status' task.id %}">
-                    {% csrf_token %}
-
-                    {% if task.status %}
-                        <button type="submit">Mark as Pending</button>
-                    {% else %}
-                        <button type="submit">Mark as Completed</button>
-                    {% endif %}
-
-                </form>
-
-            </div>
-
-            <hr>
-
-        {% endfor %}
-
-        <!-- Pagination -->
-
-        <div>
-
-            {% if tasks.has_previous %}
-
-                <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
-                    First
-                </a>
-
-                <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
-                    Previous
-                </a>
-
-            {% endif %}
-
-            <span>
-                Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
-            </span>
-
-            {% if tasks.has_next %}
-
-                <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
-                    Next
-                </a>
-
-                <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
-                    Last
-                </a>
+                <p>No overdue tasks.</p>
 
             {% endif %}
 
         </div>
 
-    {% else %}
+        <!-- Upcoming Tasks -->
 
-        <p>No tasks available yet.</p>
+        <div class="section">
 
-    {% endif %}
+            <h3>Upcoming Tasks (Next 24 Hours)</h3>
 
-    <hr>
+            {% if upcoming_tasks %}
 
-    <form method="POST" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
+                {% for task in upcoming_tasks %}
+
+                    <p>
+                        {{ task.title }} -
+                        Due: {{ task.due_date|date:"d-m-Y H:i" }}
+                    </p>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p>No upcoming tasks in the next 24 hours.</p>
+
+            {% endif %}
+
+        </div>
+
+        <!-- Task Statistics -->
+
+        <div class="section">
+
+            <h3>Task Statistics</h3>
+
+            <div class="statistics">
+
+                <div class="stat-card">
+                    <h3>{{ total_tasks }}</h3>
+                    <p>Total Tasks</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>{{ completed_tasks }}</h3>
+                    <p>Completed Tasks</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>{{ pending_tasks }}</h3>
+                    <p>Pending Tasks</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- My Tasks -->
+
+        <div class="section">
+
+            <h3>My Tasks</h3>
+
+            <!-- Search -->
+
+            <form method="GET" action="{% url 'dashboard' %}">
+
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search tasks..."
+                    value="{{ search_query|default:'' }}"
+                >
+
+                <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+                <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+
+                <button type="submit">Search</button>
+
+            </form>
+
+            <br>
+
+            <!-- Status Filter -->
+
+            <p>Filter Tasks:</p>
+
+            <div class="filter-links">
+
+                <a href="?search={{ search_query|default:'' }}&sort={{ selected_sort }}">All</a> |
+
+                <a href="?search={{ search_query|default:'' }}&status=pending&sort={{ selected_sort }}">Pending</a> |
+
+                <a href="?search={{ search_query|default:'' }}&status=completed&sort={{ selected_sort }}">Completed</a>
+
+            </div>
+
+            <!-- Sorting -->
+
+            <form method="GET" action="{% url 'dashboard' %}">
+
+                <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+                <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+
+                <label>Sort Tasks:</label>
+
+                <select name="sort" onchange="this.form.submit()">
+
+                    <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>
+                        Newest First
+                    </option>
+
+                    <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>
+                        Oldest First
+                    </option>
+
+                    <option value="priority" {% if selected_sort == 'priority' %}selected{% endif %}>
+                        Priority: High to Low
+                    </option>
+
+                    <option value="due_date" {% if selected_sort == 'due_date' %}selected{% endif %}>
+                        Due Date: Earliest First
+                    </option>
+
+                </select>
+
+            </form>
+
+            <br>
+
+            <!-- Category Filter -->
+
+            <form method="GET" action="{% url 'dashboard' %}">
+
+                <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+                <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+                <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+
+                <label>Filter by Category:</label>
+
+                <select name="category" onchange="this.form.submit()">
+
+                    <option value="" {% if not selected_category %}selected{% endif %}>
+                        All Categories
+                    </option>
+
+                    <option value="Work" {% if selected_category == 'Work' %}selected{% endif %}>
+                        Work
+                    </option>
+
+                    <option value="Personal" {% if selected_category == 'Personal' %}selected{% endif %}>
+                        Personal
+                    </option>
+
+                    <option value="Study" {% if selected_category == 'Study' %}selected{% endif %}>
+                        Study
+                    </option>
+
+                    <option value="Shopping" {% if selected_category == 'Shopping' %}selected{% endif %}>
+                        Shopping
+                    </option>
+
+                    <option value="Other" {% if selected_category == 'Other' %}selected{% endif %}>
+                        Other
+                    </option>
+
+                </select>
+
+            </form>
+
+            <br>
+
+            <!-- Priority Filter -->
+
+            <form method="GET" action="{% url 'dashboard' %}">
+
+                <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+                <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+                <input type="hidden" name="sort" value="{{ selected_sort|default:'newest' }}">
+                <input type="hidden" name="category" value="{{ selected_category|default:'' }}">
+
+                <label>Filter by Priority:</label>
+
+                <select name="priority" onchange="this.form.submit()">
+
+                    <option value="" {% if not selected_priority %}selected{% endif %}>
+                        All Priorities
+                    </option>
+
+                    <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>
+                        High
+                    </option>
+
+                    <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>
+                        Medium
+                    </option>
+
+                    <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>
+                        Low
+                    </option>
+
+                </select>
+
+            </form>
+
+            <hr>
+
+            <!-- Task List -->
+
+            {% if tasks %}
+
+                {% for task in tasks %}
+
+                    <div class="task-card">
+
+                        <h4>{{ task.title }}</h4>
+
+                        <p>Priority: {{ task.priority }}</p>
+                        <p>Category: {{ task.category }}</p>
+                        <p>{{ task.description }}</p>
+
+                        <p>
+                            Due Date:
+
+                            {% if task.due_date %}
+                                {{ task.due_date|date:"d-m-Y H:i" }}
+                            {% else %}
+                                Not set
+                            {% endif %}
+                        </p>
+
+                        <p>
+                            Status:
+
+                            {% if task.status %}
+                                Completed
+                            {% else %}
+                                Pending
+                            {% endif %}
+                        </p>
+
+                        <p>Created: {{ task.created_at }}</p>
+
+                        <a href="{% url 'edit_task' task.id %}">Edit</a>
+
+                        <form method="POST" action="{% url 'delete_task' task.id %}">
+                            {% csrf_token %}
+                            <button type="submit">Delete</button>
+                        </form>
+
+                        <form method="POST" action="{% url 'toggle_task_status' task.id %}">
+                            {% csrf_token %}
+
+                            {% if task.status %}
+                                <button type="submit">Mark as Pending</button>
+                            {% else %}
+                                <button type="submit">Mark as Completed</button>
+                            {% endif %}
+
+                        </form>
+
+                    </div>
+
+                {% endfor %}
+
+                <!-- Pagination -->
+
+                <div class="pagination">
+
+                    {% if tasks.has_previous %}
+
+                        <a href="?page=1&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                            First
+                        </a>
+
+                        <a href="?page={{ tasks.previous_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                            Previous
+                        </a>
+
+                    {% endif %}
+
+                    <span>
+                        Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
+                    </span>
+
+                    {% if tasks.has_next %}
+
+                        <a href="?page={{ tasks.next_page_number }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                            Next
+                        </a>
+
+                        <a href="?page={{ tasks.paginator.num_pages }}&search={{ search_query|default:'' }}&status={{ selected_status|default:'' }}&sort={{ selected_sort }}">
+                            Last
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            {% else %}
+
+                <p>No tasks available yet.</p>
+
+            {% endif %}
+
+        </div>
+
+        <!-- Logout -->
+
+        <div class="logout">
+
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+
+        </div>
+
+    </div>
 
 </body>
 
